@@ -385,11 +385,19 @@ oncoFormDetail.validate({
 		}
 	});
 
-	$.getJSON('https://s3.ap-south-1.amazonaws.com/test.ml.prathamesh/data.json', function (data) {
-		$("#confirmedCount").html(data.Nigeria.total_case)
-		$("#discharedCount").html(data.Nigeria.total_recovered)
-		$("#totalDeath").html(data.Nigeria.total_death)
-	});
+	// COVID-19 statistics - temporarily disabled due to CORS issues
+	// $.getJSON('https://s3.ap-south-1.amazonaws.com/test.ml.prathamesh/data.json', function (data) {
+	// 	$("#confirmedCount").html(data.Nigeria.total_case)
+	// 	$("#discharedCount").html(data.Nigeria.total_recovered)
+	// 	$("#totalDeath").html(data.Nigeria.total_death)
+	// }).fail(function() {
+	// 	console.log('COVID-19 data unavailable');
+	// });
+	
+	// Set default values for COVID-19 statistics
+	$("#confirmedCount").html("N/A")
+	$("#discharedCount").html("N/A")
+	$("#totalDeath").html("N/A")
 
 
 })(jQuery);
