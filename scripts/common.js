@@ -28,11 +28,9 @@ contactForm.validate({
 		$.ajax({
 			type: "POST",
 			dataType: 'JSON',
-			url: 'https://api.mecuresmartbuy.com/v1/MC_sendWeCareEmail',
-			data: JSON.stringify({
-				data,
-				"title": $(form).data('title')
-			}),
+			url: '/api/contact',
+			data: data,
+			contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
 			beforeSend: () => {
 				contactForm.find('.fa-arrow-right').addClass("spinner-cust");
 				$('#submit').attr('disabled', true);

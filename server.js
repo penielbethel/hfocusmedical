@@ -495,6 +495,76 @@ app.delete("/api/admins/:id", authMiddleware, superAdminMiddleware, async (req, 
   }
 });
 
+// -------------------- CONTACT FORM --------------------
+app.post("/api/contact", async (req, res) => {
+  try {
+    const { "First Name": firstName, "Last Name": lastName, Email: email, Phone: phone, Subject: subject, Message: message } = req.body;
+    
+    // Send email to official company email
+    const contactEmail = {
+      from: `"H-Focus Medical Laboratory" <${process.env.EMAIL_USER}>`,
+      to: 'havefocusgroups@gmail.com',
+      subject: `New Contact Message: ${subject}`,
+      replyTo: email,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h2 style="color: #228B22; margin: 0;">H-Focus Medical Laboratory</h2>
+            <p style="color: #666; margin: 5px 0;">New Contact Message</p>
+          </div>
+          
+          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h3 style="color: #228B22; margin-top: 0;">📧 Contact Form Submission</h3>
+            <p>You have received a new message from your website contact form:</p>
+          </div>
+          
+          <div style="background-color: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Name:</strong></td>
+                <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${firstName} ${lastName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Email:</strong></td>
+                <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${email}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Phone:</strong></td>
+                <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${phone}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Subject:</strong></td>
+                <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${subject}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; vertical-align: top;"><strong>Message:</strong></td>
+                <td style="padding: 8px 0;">${message}</td>
+              </tr>
+            </table>
+          </div>
+          
+          <div style="background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+            <p style="color: #155724; margin: 0;">📞 Please respond to this inquiry promptly. You can reply directly to this email to contact the sender.</p>
+          </div>
+          
+          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="color: #666; margin: 5px 0; font-size: 12px;">This message was sent from the H-Focus Medical Laboratory website contact form.</p>
+            <p style="color: #666; margin: 5px 0; font-size: 12px;">Received on: ${new Date().toLocaleString()}</p>
+          </div>
+        </div>
+      `
+    };
+    
+    await transporter.sendMail(contactEmail);
+    console.log(`✅ Contact form email sent to: havefocusgroups@gmail.com from: ${email}`);
+    
+    res.json({ status: 1, message: "Message sent successfully" });
+  } catch (error) {
+    console.error(`❌ Contact form email failed:`, error.message);
+    res.status(500).json({ status: 0, message: "Error sending message", error: error.message });
+  }
+});
+
 // -------------------- APPOINTMENTS --------------------
 app.post("/api/appointments", async (req, res) => {
   try {
