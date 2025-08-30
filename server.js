@@ -274,8 +274,20 @@ function getCompanyEmailTemplate(appointment) {
   };
 }
 
-// Middleware
-app.use(cors());
+// Middleware - Configure CORS for production
+const corsOptions = {
+  origin: [
+    'https://hfocusmedical.com',
+    'https://www.hfocusmedical.com',
+    'http://localhost:3000', // For local development
+    'http://localhost:5000'  // For local development
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 // -------------------- SCHEMAS --------------------

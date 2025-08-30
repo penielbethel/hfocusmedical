@@ -540,7 +540,7 @@ function getDatesAccordingDep(sel) {
     $.ajax({
         type: "GET",
         dataType: 'JSON',
-        url: "https://hfocusmedical.com/api/public/appointments/slots",
+        url: "https://hfocusmedical.onrender.com/api/public/appointments/slots",
         data: {
             date: sel.value,
             department: depvalue
@@ -636,7 +636,7 @@ function getDatesAccordingDep(sel) {
         $.ajax({
             type: "POST",
             dataType: 'JSON',
-            url: '/api/appointments',
+            url: 'https://hfocusmedical.onrender.com/api/appointments',
             data: JSON.stringify({
                 department: dep,
                 appointment_date: booking_date,
@@ -854,7 +854,7 @@ function showDates() {
     return;
   }
 
-  $.get(`/api/public/appointments/available-dates/${encodeURIComponent(department)}`, function (response) {
+  $.get(`https://hfocusmedical.onrender.com/api/public/appointments/available-dates/${encodeURIComponent(department)}`, function (response) {
     if (response.status === 1 && response.dates.length > 0) {
       let options = '<option value="">Select Date</option>';
       response.dates.forEach(date => {
