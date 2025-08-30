@@ -147,7 +147,7 @@ $("#resultForm").on("submit", function(e) {
   resultStatus.removeClass("d-none");
 
   $.ajax({
-    url: "http://localhost:5000/api/appointments/" + id,
+    url: "https://hfocusmedical.onrender.com/api/appointments/" + id,
     method: "GET",
     success: function(resp) {
       if (resp.status === 1 && resp.data) {
