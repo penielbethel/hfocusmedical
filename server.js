@@ -510,7 +510,15 @@ app.delete("/api/admins/:id", authMiddleware, superAdminMiddleware, async (req, 
 // -------------------- CONTACT FORM --------------------
 app.post("/api/contact", async (req, res) => {
   try {
-    const { "First Name": firstName, "Last Name": lastName, Email: email, Phone: phone, Subject: subject, Message: message } = req.body;
+    // Handle both possible field name formats
+    const firstName = req.body["First Name"] || req.body.firstName || req.body.first_name || req.body.name?.split(' ')[0] || '';
+    const lastName = req.body["Last Name"] || req.body.lastName || req.body.last_name || req.body.name?.split(' ')[1] || '';
+    const email = req.body.Email || req.body.email || '';
+    const phone = req.body.Phone || req.body.phone || req.body.mobile || '';
+    const subject = req.body.Subject || req.body.subject || 'Contact Form Inquiry';
+    const message = req.body.Message || req.body.message || req.body.comments || '';
+    
+    console.log('Contact form data received:', req.body);
     
     // Send email to official company email
     const contactEmail = {
