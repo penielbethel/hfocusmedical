@@ -126,7 +126,7 @@
       const username = $("#username").val().trim();
       const password = $("#password").val().trim();
 
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("https://hfocusmedical.onrender.com/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
@@ -148,7 +148,7 @@
       const regUsername = $("#regUsername").val().trim();
       const regPassword = $("#regPassword").val().trim();
 
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch("https://hfocusmedical.onrender.com/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
