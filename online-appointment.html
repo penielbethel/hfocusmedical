@@ -540,7 +540,7 @@ function getDatesAccordingDep(sel) {
     $.ajax({
         type: "GET",
         dataType: 'JSON',
-        url: "http://localhost:5000/api/public/appointments/slots",
+        url: "https://hfocusmedical.com/api/public/appointments/slots",
         data: {
             date: sel.value,
             department: depvalue
