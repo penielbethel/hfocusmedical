@@ -701,7 +701,7 @@ app.get("/api/public/appointments/slots", async (req, res) => {
 });
 
 // -------------------- STATIC FRONTEND --------------------
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, ".")));
 
 // -------------------- DATABASE --------------------
 const mongoUri = process.env.MONGO_URI;
