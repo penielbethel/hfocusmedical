@@ -1,25 +1,19 @@
 # Dependencies
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Environment variables
 .env
-
-# Frontend files (deployed on Truehost)
-*.html
-images/
-styles/
-scripts/
-logo.png
-
-# Results directory
-results/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Logs
 logs
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # Runtime data
 pids
@@ -34,6 +28,7 @@ coverage/
 .nyc_output
 
 # Dependency directories
+node_modules/
 jspm_packages/
 
 # Optional npm cache directory
@@ -49,26 +44,28 @@ jspm_packages/
 .yarn-integrity
 
 # dotenv environment variables file
-.env.test
+.env
 
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# next.js build output
-.next
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# nuxt.js build output
-.nuxt
+# Build directories
+build/
+dist/
 
-# vuepress build output
-.vuepress/dist
-
-# Serverless directories
-.serverless
-
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
+# Temporary files
+tmp/
+temp/
