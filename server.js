@@ -9,6 +9,15 @@ const jwt = require("jsonwebtoken");
 const nodemailer = require('nodemailer');
 const { jsPDF } = require('jspdf');
 const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const multer = require('multer');
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -683,35 +692,56 @@ app.delete("/api/appointments/:uniqueId", authMiddleware, async (req, res) => {
 // Upload result file (Admin only)
 app.post("/api/appointments/upload/:uniqueId", authMiddleware, async (req, res) => {
   try {
-    const multer = require('multer');
-    const storage = multer.diskStorage({
-      destination: function (req, file, cb) {
-        const fs = require('fs');
-        const dir = './public/results';
-        if (!fs.existsSync(dir)) {
-          fs.mkdirSync(dir, { recursive: true });
+    // Configure multer for memory storage
+    const storage = multer.memoryStorage();
+    const upload = multer({ 
+      storage: storage,
+      fileFilter: (req, file, cb) => {
+        // Accept only PDF files
+        if (file.mimetype === 'application/pdf') {
+          cb(null, true);
+        } else {
+          cb(new Error('Only PDF files are allowed'), false);
         }
-        cb(null, dir);
       },
-      filename: function (req, file, cb) {
-        cb(null, req.params.uniqueId + '_' + Date.now() + '.pdf');
+      limits: {
+        fileSize: 10 * 1024 * 1024 // 10MB limit
       }
-    });
-    
-    const upload = multer({ storage: storage }).single('result');
+    }).single('result');
     
     upload(req, res, async function (err) {
       if (err) {
         return res.status(500).json({ status: 0, message: "Upload failed", error: err.message });
       }
       
+      if (!req.file) {
+        return res.status(400).json({ status: 0, message: "No file uploaded" });
+      }
+      
       try {
-        const filePath = '/results/' + req.file.filename;
+        // Upload to Cloudinary
+        const uploadResult = await new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              resource_type: 'raw',
+              folder: 'hfocus-results',
+              public_id: `${req.params.uniqueId}_${Date.now()}`,
+              format: 'pdf'
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+          uploadStream.end(req.file.buffer);
+        });
+        
+        // Update appointment with Cloudinary URL
         const appointment = await Appointment.findOneAndUpdate(
           { unique_id: req.params.uniqueId },
           { 
             result_ready: true,
-            result_file: filePath
+            result_file: uploadResult.secure_url
           },
           { new: true }
         );
@@ -720,9 +750,15 @@ app.post("/api/appointments/upload/:uniqueId", authMiddleware, async (req, res) 
           return res.status(404).json({ status: 0, message: "Appointment not found" });
         }
         
-        res.json({ status: 1, message: "Result uploaded successfully", data: appointment });
+        res.json({ 
+          status: 1, 
+          message: "Result uploaded successfully to cloud storage", 
+          data: appointment,
+          cloudinary_url: uploadResult.secure_url
+        });
       } catch (error) {
-        res.status(500).json({ status: 0, message: "Error updating appointment", error: error.message });
+        console.error('Cloudinary upload error:', error);
+        res.status(500).json({ status: 0, message: "Error uploading to cloud storage", error: error.message });
       }
     });
    } catch (error) {
@@ -806,4 +842,4 @@ mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
 
 
 // -------------------- START --------------------
-app.listen(PORT, () => console.log(`🚀 Server running on https://hfocusmedical.com/`));
+app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}/`));
