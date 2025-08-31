@@ -697,12 +697,8 @@ app.post("/api/appointments/upload/:uniqueId", authMiddleware, async (req, res) 
     const upload = multer({ 
       storage: storage,
       fileFilter: (req, file, cb) => {
-        // Accept only PDF files
-        if (file.mimetype === 'application/pdf') {
-          cb(null, true);
-        } else {
-          cb(new Error('Only PDF files are allowed'), false);
-        }
+        // Accept all file types
+        cb(null, true);
       },
       limits: {
         fileSize: 10 * 1024 * 1024 // 10MB limit
@@ -723,10 +719,11 @@ app.post("/api/appointments/upload/:uniqueId", authMiddleware, async (req, res) 
         const uploadResult = await new Promise((resolve, reject) => {
           const uploadStream = cloudinary.uploader.upload_stream(
             {
-              resource_type: 'raw',
+              resource_type: 'auto',
               folder: 'hfocus-results',
               public_id: `${req.params.uniqueId}_${Date.now()}`,
-              format: 'pdf'
+              use_filename: true,
+              unique_filename: true
             },
             (error, result) => {
               if (error) reject(error);
