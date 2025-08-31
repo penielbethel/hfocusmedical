@@ -48,6 +48,16 @@ jspm_packages/
 
 # IDE files
 .vscode/
+
+# Frontend files (deployed to TrueHost)
+*.html
+images/
+scripts/
+styles/
+pdf/
+logo.png
+generate-pdf.js
+results/
 .idea/
 *.swp
 *.swo
