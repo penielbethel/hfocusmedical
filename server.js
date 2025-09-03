@@ -298,6 +298,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // -------------------- SCHEMAS --------------------
 const appointmentSchema = new mongoose.Schema({
@@ -338,10 +339,60 @@ const activeTokenSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now, expires: "1h" }
 });
 
+const corporateBookingSchema = new mongoose.Schema({
+  organization_id: { type: String, unique: true },
+  company_name: String,
+  contact_person: String,
+  company_email: String,
+  contact_phone: String,
+  department: String,
+  number_of_employees: Number,
+  additional_info: String,
+  investigations: [{
+    category: String,
+    test_name: String,
+    price: Number
+  }],
+  staff_members: [{
+    name: String,
+    search_number: String,
+    age: Number,
+    gender: String,
+    investigations: [{
+      category: String,
+      test_name: String,
+      price: Number
+    }],
+    individual_cost: { type: Number, default: 0 },
+    appointment_date: String,
+    appointment_time: String,
+    result_ready: { type: Boolean, default: false },
+    result_file: { type: String, default: null }
+  }],
+  staff_count: { type: Number, default: 0 },
+  total_investigation_cost: { type: Number, default: 0 },
+  status: { type: String, enum: ["pending", "confirmed", "completed", "cancelled"], default: "pending" },
+  employees: [{
+    employee_id: String,
+    name: String,
+    email: String,
+    phone: String,
+    department: String,
+    age: Number,
+    gender: String,
+    appointment_date: String,
+    appointment_time: String,
+    result_ready: { type: Boolean, default: false },
+    result_file: { type: String, default: null }
+  }],
+  created_at: { type: Date, default: Date.now }
+});
+
 const Appointment = mongoose.model("Appointment", appointmentSchema);
 const User = mongoose.model("User", userSchema);
 const RegisterToken = mongoose.model("RegisterToken", registerTokenSchema);
 const ActiveToken = mongoose.model("ActiveToken", activeTokenSchema);
+const CorporateBooking = mongoose.model("CorporateBooking", corporateBookingSchema);
 
 // -------------------- HELPERS --------------------
 function generateUniqueId() {
@@ -351,6 +402,11 @@ function generateUniqueId() {
 
 function generateBookingId() {
   return "HF" + Date.now();
+}
+
+function generateOrganizationId() {
+  const randomNum = Math.floor(100000 + Math.random() * 900000);
+  return "ORG" + randomNum;
 }
 
 // -------------------- MIDDLEWARE --------------------
@@ -529,10 +585,27 @@ app.post("/api/contact", async (req, res) => {
     
     console.log('Contact form data received:', req.body);
     
+    // Basic validation for required fields
+    if (!firstName || !email || !message) {
+      return res.status(400).json({ 
+        status: 0, 
+        message: "Please fill in all required fields (First Name, Email, and Message)" 
+      });
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ 
+        status: 0, 
+        message: "Please enter a valid email address" 
+      });
+    }
+    
     // Send email to official company email
     const contactEmail = {
       from: `"H-Focus Medical Laboratory" <${process.env.EMAIL_USER}>`,
-      to: 'havefocusgroups@gmail.com',
+      to: 'info@hfocusmedical.com',
       subject: `New Contact Message: ${subject}`,
       replyTo: email,
       html: `
@@ -585,7 +658,7 @@ app.post("/api/contact", async (req, res) => {
     };
     
     await transporter.sendMail(contactEmail);
-    console.log(`✅ Contact form email sent to: havefocusgroups@gmail.com from: ${email}`);
+    console.log(`✅ Contact form email sent to: info@hfocusmedical.com from: ${email}`);
     
     res.json({ status: 1, message: "Message sent successfully" });
   } catch (error) {
@@ -689,14 +762,36 @@ app.delete("/api/appointments/:uniqueId", authMiddleware, async (req, res) => {
   }
 });
 
+// Test Cloudinary connection endpoint
+app.get("/api/test-cloudinary", authMiddleware, async (req, res) => {
+  try {
+    const testResult = await cloudinary.api.ping();
+    res.json({ 
+      status: 1, 
+      message: "Cloudinary connection successful", 
+      data: testResult 
+    });
+  } catch (error) {
+    console.error('Cloudinary connection test failed:', error);
+    res.status(500).json({ 
+      status: 0, 
+      message: "Cloudinary connection failed", 
+      error: error.message 
+    });
+  }
+});
+
 // Upload result file (Admin only)
 app.post("/api/appointments/upload/:uniqueId", authMiddleware, async (req, res) => {
   try {
+    console.log(`📤 Upload request received for uniqueId: ${req.params.uniqueId}`);
+    
     // Configure multer for memory storage
     const storage = multer.memoryStorage();
     const upload = multer({ 
       storage: storage,
       fileFilter: (req, file, cb) => {
+        console.log(`📁 File received: ${file.originalname}, type: ${file.mimetype}`);
         // Accept all file types
         cb(null, true);
       },
@@ -707,31 +802,48 @@ app.post("/api/appointments/upload/:uniqueId", authMiddleware, async (req, res) 
     
     upload(req, res, async function (err) {
       if (err) {
+        console.error('❌ Multer upload error:', err);
         return res.status(500).json({ status: 0, message: "Upload failed", error: err.message });
       }
       
       if (!req.file) {
+        console.error('❌ No file received in request');
         return res.status(400).json({ status: 0, message: "No file uploaded" });
       }
       
+      console.log(`✅ File processed by multer: ${req.file.originalname}, size: ${req.file.size} bytes`);
+      
       try {
+        console.log('🔄 Starting Cloudinary upload...');
+        
         // Upload to Cloudinary
         const uploadResult = await new Promise((resolve, reject) => {
+          // Determine resource type based on file extension
+          const fileExtension = req.file.originalname.toLowerCase().split('.').pop();
+          const resourceType = (fileExtension === 'pdf') ? 'raw' : 'auto';
+          
           const uploadStream = cloudinary.uploader.upload_stream(
             {
-              resource_type: 'auto',
+              resource_type: resourceType,
               folder: 'hfocus-results',
               public_id: `${req.params.uniqueId}_${Date.now()}`,
               use_filename: true,
               unique_filename: true
             },
             (error, result) => {
-              if (error) reject(error);
-              else resolve(result);
+              if (error) {
+                console.error('❌ Cloudinary upload error:', error);
+                reject(error);
+              } else {
+                console.log('✅ Cloudinary upload successful:', result.secure_url);
+                resolve(result);
+              }
             }
           );
           uploadStream.end(req.file.buffer);
         });
+        
+        console.log('🔄 Updating appointment in database...');
         
         // Update appointment with Cloudinary URL
         const appointment = await Appointment.findOneAndUpdate(
@@ -744,8 +856,11 @@ app.post("/api/appointments/upload/:uniqueId", authMiddleware, async (req, res) 
         );
         
         if (!appointment) {
+          console.error(`❌ Appointment not found for uniqueId: ${req.params.uniqueId}`);
           return res.status(404).json({ status: 0, message: "Appointment not found" });
         }
+        
+        console.log(`✅ Upload completed successfully for ${req.params.uniqueId}`);
         
         res.json({ 
           status: 1, 
@@ -820,6 +935,584 @@ app.get("/api/public/appointments/slots", async (req, res) => {
     res.json({ status: 1, date, department, slots: availableSlots });
   } catch (error) {
     res.status(500).json({ status: 0, message: "Error fetching slots", error: error.message });
+  }
+});
+
+// -------------------- CORPORATE BOOKINGS --------------------
+// Create corporate booking
+app.post("/api/corporate-bookings", async (req, res) => {
+  try {
+    // Generate Organization ID
+    let organizationId, exists = true;
+    while (exists) {
+      organizationId = generateOrganizationId();
+      const existing = await CorporateBooking.findOne({ organization_id: organizationId });
+      if (!existing) exists = false;
+    }
+
+    // Process staff data to ensure proper investigation mapping
+    let processedStaffMembers = req.body.staff_data || req.body.staff_members || [];
+    if (processedStaffMembers.length > 0) {
+      processedStaffMembers = processedStaffMembers.map(staff => {
+        // Map investigation 'name' to 'test_name' for consistency
+        const processedInvestigations = staff.investigations ? staff.investigations.map(inv => ({
+          test_name: inv.test_name || inv.name,
+          price: inv.price,
+          category: inv.category || 'General'
+        })) : [];
+        
+        return {
+          ...staff,
+          investigations: processedInvestigations
+        };
+      });
+    }
+
+    // Aggregate all investigations from staff members
+    const allInvestigations = [];
+    const investigationMap = new Map();
+    
+    if (processedStaffMembers.length > 0) {
+      processedStaffMembers.forEach(staff => {
+        if (staff.investigations && staff.investigations.length > 0) {
+          staff.investigations.forEach(inv => {
+            const key = `${inv.test_name}_${inv.category}`;
+            if (investigationMap.has(key)) {
+              investigationMap.get(key).count += 1;
+            } else {
+              investigationMap.set(key, {
+                test_name: inv.test_name,
+                category: inv.category,
+                price: inv.price,
+                count: 1
+              });
+            }
+          });
+        }
+      });
+    }
+    
+    // Convert map to array for investigations field
+    investigationMap.forEach(inv => {
+      allInvestigations.push({
+        test_name: inv.test_name,
+        category: inv.category,
+        price: inv.price
+      });
+    });
+
+    // Create corporate booking with proper field mapping
+    const bookingData = {
+      ...req.body,
+      organization_id: organizationId,
+      department: req.body.service_type || req.body.department, // Map service_type to department
+      contact_phone: req.body.company_phone || req.body.contact_phone, // Map company_phone to contact_phone
+      number_of_employees: req.body.estimated_employees || req.body.number_of_employees,
+      staff_members: processedStaffMembers,
+      investigations: allInvestigations // Add aggregated investigations
+    };
+    
+    const newCorporateBooking = new CorporateBooking(bookingData);
+    
+    // Calculate total investigation cost from staff members
+    let totalCost = 0;
+    if (newCorporateBooking.staff_members && newCorporateBooking.staff_members.length > 0) {
+      newCorporateBooking.staff_members.forEach(staff => {
+        totalCost += staff.individual_cost || 0;
+      });
+    }
+    newCorporateBooking.total_investigation_cost = totalCost;
+    newCorporateBooking.staff_count = newCorporateBooking.staff_members.length;
+    
+    await newCorporateBooking.save();
+
+    // Send email notifications
+    try {
+      // Send confirmation email to company
+      const companyEmail = {
+        from: `"H-Focus Medical Laboratory" <${process.env.EMAIL_USER}>`,
+        to: newCorporateBooking.company_email,
+        subject: 'Corporate Booking Confirmation - H-Focus Medical Laboratory',
+        replyTo: process.env.EMAIL_USER,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h2 style="color: #228B22; margin: 0;">H-Focus Medical Laboratory</h2>
+              <p style="color: #666; margin: 5px 0;">Corporate Health Services</p>
+            </div>
+            
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+              <h3 style="color: #228B22; margin-top: 0;">🎉 Corporate Booking Confirmed!</h3>
+              <p>Dear <strong>${newCorporateBooking.contact_person}</strong>,</p>
+              <p>Your corporate booking request has been successfully submitted. Here are your booking details:</p>
+            </div>
+            
+            <div style="background-color: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Organization ID:</strong></td>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1; color: #228B22;"><strong>${newCorporateBooking.organization_id}</strong></td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Company:</strong></td>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${newCorporateBooking.company_name}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Contact Person:</strong></td>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${newCorporateBooking.contact_person}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Department/Service:</strong></td>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${newCorporateBooking.department}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Number of Employees:</strong></td>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${newCorporateBooking.number_of_employees || 'Not specified'}</td>
+                </tr>
+                ${newCorporateBooking.investigations && newCorporateBooking.investigations.length > 0 ? `
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Selected Investigations:</strong></td>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">
+                    ${newCorporateBooking.investigations.length} test(s) selected
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Investigation Details & Pricing:</strong></td>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">
+                    <div style="background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin: 5px 0;">
+                      ${newCorporateBooking.investigations.map(inv => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #e9ecef;">
+                          <span><strong>${inv.test_name || inv.name || inv}</strong> <small style="color: #666;">(${inv.category || 'General'})</small></span>
+                          <span style="color: #228B22; font-weight: bold;">₦${inv.price?.toLocaleString() || '0'}</span>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Total Investigation Cost:</strong></td>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1; color: #228B22;"><strong>₦${newCorporateBooking.total_investigation_cost?.toLocaleString() || '0'}</strong></td>
+                </tr>` : ''}
+                ${newCorporateBooking.staff_members && newCorporateBooking.staff_members.length > 0 ? `
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Staff Members:</strong></td>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">
+                    <div style="background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin: 5px 0;">
+                      <strong>${newCorporateBooking.staff_members.length} staff member(s) registered:</strong><br>
+                      ${newCorporateBooking.staff_members.map((staff, index) => `
+                        <div style="margin: 8px 0; padding: 8px; background-color: #fff; border-radius: 4px; border-left: 3px solid #228B22;">
+                          <strong>${index + 1}. ${staff.name}</strong> (${staff.age} years, ${staff.gender})<br>
+                          <small style="color: #666;">Search Number: ${staff.search_number}</small><br>
+                          ${staff.investigations && staff.investigations.length > 0 ? `
+                            <small><strong>Tests:</strong> ${staff.investigations.map(inv => inv.test_name).join(', ')}</small><br>
+                            <small><strong>Individual Cost:</strong> <span style="color: #228B22;">₦${staff.individual_cost?.toLocaleString() || '0'}</span></small>
+                          ` : ''}
+                        </div>
+                      `).join('')}
+                    </div>
+                  </td>
+                </tr>` : ''}
+                <tr>
+                  <td style="padding: 8px 0;"><strong>Status:</strong></td>
+                  <td style="padding: 8px 0; color: #ffc107;"><strong>PENDING CONFIRMATION</strong></td>
+                </tr>
+              </table>
+            </div>
+            
+            <div style="background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+              <h4 style="color: #155724; margin-top: 0;">📋 Next Steps:</h4>
+              <ul style="color: #155724; margin: 0; padding-left: 20px;">
+                <li>Our team will contact you within 24 hours to confirm your booking</li>
+                <li>Keep your <strong>Organization ID (${newCorporateBooking.organization_id})</strong> safe for future reference</li>
+                <li>We will coordinate appointment scheduling for your employees</li>
+                <li>Use your Organization ID to check results online</li>
+              </ul>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+              <p style="color: #666; margin: 5px 0;">📞 Contact: 0700 225 4365, 0700 CAL HFML</p>
+              <p style="color: #666; margin: 5px 0;">📧 Email: support@hfocusmedical.com</p>
+              <p style="color: #666; margin: 5px 0; font-size: 12px;">Registration: OG/MOH/HS TTD/05/904C/1123</p>
+            </div>
+          </div>
+        `
+      };
+      
+      await transporter.sendMail(companyEmail);
+      console.log(`✅ Corporate booking confirmation email sent to: ${newCorporateBooking.company_email}`);
+
+      // Send notification to admin
+      const adminEmail = {
+        from: `"H-Focus Medical Laboratory" <${process.env.EMAIL_USER}>`,
+        to: process.env.EMAIL_USER,
+        subject: `New Corporate Booking - ${newCorporateBooking.company_name}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #228B22;">New Corporate Booking Received</h2>
+            <p><strong>Organization ID:</strong> ${newCorporateBooking.organization_id}</p>
+            <p><strong>Company:</strong> ${newCorporateBooking.company_name}</p>
+            <p><strong>Contact Person:</strong> ${newCorporateBooking.contact_person}</p>
+            <p><strong>Email:</strong> ${newCorporateBooking.company_email}</p>
+            <p><strong>Phone:</strong> ${newCorporateBooking.contact_phone}</p>
+            <p><strong>Department:</strong> ${newCorporateBooking.department}</p>
+            <p><strong>Employees:</strong> ${newCorporateBooking.number_of_employees || 'Not specified'}</p>
+            ${newCorporateBooking.investigations && newCorporateBooking.investigations.length > 0 ? `
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+              <p><strong>Selected Investigations:</strong> ${newCorporateBooking.investigations.length} test(s) selected</p>
+              <div style="background-color: #fff; padding: 10px; border-radius: 5px; border: 1px solid #e9ecef;">
+                <h4 style="color: #228B22; margin-top: 0;">📋 Investigation Details & Pricing:</h4>
+                ${newCorporateBooking.investigations.map(inv => `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f1f1f1;">
+                    <span><strong>${inv.test_name || inv.name || inv}</strong> <small style="color: #666;">(${inv.category || 'General'})</small></span>
+                    <span style="color: #228B22; font-weight: bold; font-size: 16px;">₦${inv.price?.toLocaleString() || '0'}</span>
+                  </div>
+                `).join('')}
+                <div style="margin-top: 15px; padding-top: 10px; border-top: 2px solid #228B22;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 18px; font-weight: bold;">Total Investigation Cost:</span>
+                    <span style="color: #228B22; font-weight: bold; font-size: 20px;">₦${newCorporateBooking.total_investigation_cost?.toLocaleString() || '0'}</span>
+                  </div>
+                </div>
+              </div>
+             </div>` : ''}
+             ${newCorporateBooking.staff_members && newCorporateBooking.staff_members.length > 0 ? `
+             <div style="background-color: #e8f5e8; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #228B22;">
+               <h4 style="color: #228B22; margin-top: 0;">👥 Staff Members Registered (${newCorporateBooking.staff_members.length})</h4>
+               ${newCorporateBooking.staff_members.map((staff, index) => `
+                 <div style="background-color: #fff; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #d4edda;">
+                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                     <span style="font-size: 16px; font-weight: bold; color: #228B22;">${index + 1}. ${staff.name}</span>
+                     <span style="background-color: #228B22; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">${staff.search_number}</span>
+                   </div>
+                   <div style="margin-bottom: 8px;">
+                     <span style="color: #666;"><strong>Age:</strong> ${staff.age} years | <strong>Gender:</strong> ${staff.gender}</span>
+                   </div>
+                   ${staff.investigations && staff.investigations.length > 0 ? `
+                     <div style="background-color: #f8f9fa; padding: 8px; border-radius: 4px; margin: 5px 0;">
+                       <strong style="color: #228B22;">Assigned Tests (${staff.investigations.length}):</strong><br>
+                       ${staff.investigations.map(inv => `
+                         <div style="display: flex; justify-content: space-between; padding: 3px 0;">
+                           <span>• ${inv.test_name} <small>(${inv.category})</small></span>
+                           <span style="color: #228B22; font-weight: bold;">₦${inv.price?.toLocaleString() || '0'}</span>
+                         </div>
+                       `).join('')}
+                       <div style="border-top: 1px solid #dee2e6; margin-top: 8px; padding-top: 5px;">
+                         <strong>Individual Total: <span style="color: #228B22;">₦${staff.individual_cost?.toLocaleString() || '0'}</span></strong>
+                       </div>
+                     </div>
+                   ` : ''}
+                 </div>
+               `).join('')}
+             </div>` : ''}
+             <p><strong>Additional Info:</strong> ${newCorporateBooking.additional_info || 'None'}</p>
+            <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+          </div>
+        `
+      };
+      
+      await transporter.sendMail(adminEmail);
+      console.log(`✅ Corporate booking notification sent to admin`);
+    } catch (emailError) {
+      console.error(`❌ Corporate booking email failed:`, emailError.message);
+    }
+
+    res.json({
+      status: 1,
+      message: "Corporate booking submitted successfully",
+      data: newCorporateBooking
+    });
+  } catch (error) {
+    res.status(500).json({ status: 0, message: "Error saving corporate booking", error: error.message });
+  }
+});
+
+// Get all corporate bookings (Admin only) - Temporarily removed auth for testing
+app.get("/api/corporate-bookings", async (req, res) => {
+  try {
+    const corporateBookings = await CorporateBooking.find().sort({ created_at: -1 });
+    res.json({ status: 1, data: corporateBookings });
+  } catch (error) {
+    res.status(500).json({ status: 0, message: "Error fetching corporate bookings", error: error.message });
+  }
+});
+
+// Get corporate booking by organization ID
+app.get("/api/corporate-bookings/:organizationId", async (req, res) => {
+  try {
+    const corporateBooking = await CorporateBooking.findOne({ organization_id: req.params.organizationId });
+    if (!corporateBooking) {
+      return res.json({ status: 0, message: "Organization not found" });
+    }
+    res.json({ status: 1, data: corporateBooking });
+  } catch (error) {
+    res.status(500).json({ status: 0, message: "Error fetching corporate booking", error: error.message });
+  }
+});
+
+// Update corporate booking status (Admin only) - Temporarily removed auth for testing
+app.put("/api/corporate-bookings/:organizationId/status", async (req, res) => {
+  try {
+    const { status } = req.body;
+    const corporateBooking = await CorporateBooking.findOneAndUpdate(
+      { organization_id: req.params.organizationId },
+      { status },
+      { new: true }
+    );
+    
+    if (!corporateBooking) {
+      return res.status(404).json({ status: 0, message: "Corporate booking not found" });
+    }
+    
+    res.json({ status: 1, message: "Status updated successfully", data: corporateBooking });
+  } catch (error) {
+    res.status(500).json({ status: 0, message: "Error updating status", error: error.message });
+  }
+});
+
+// Add employee to corporate booking (Admin only)
+app.post("/api/corporate-bookings/:organizationId/employees", authMiddleware, async (req, res) => {
+  try {
+    const employeeData = {
+      ...req.body,
+      employee_id: generateUniqueId()
+    };
+    
+    const corporateBooking = await CorporateBooking.findOneAndUpdate(
+      { organization_id: req.params.organizationId },
+      { $push: { employees: employeeData } },
+      { new: true }
+    );
+    
+    if (!corporateBooking) {
+      return res.status(404).json({ status: 0, message: "Corporate booking not found" });
+    }
+    
+    res.json({ status: 1, message: "Employee added successfully", data: corporateBooking });
+  } catch (error) {
+    res.status(500).json({ status: 0, message: "Error adding employee", error: error.message });
+  }
+});
+
+// Update employee result (Admin only)
+app.put("/api/corporate-bookings/:organizationId/employees/:employeeId/result", authMiddleware, async (req, res) => {
+  try {
+    const { result_file, result_ready } = req.body;
+    
+    const corporateBooking = await CorporateBooking.findOneAndUpdate(
+      { 
+        organization_id: req.params.organizationId,
+        "employees.employee_id": req.params.employeeId
+      },
+      { 
+        $set: {
+          "employees.$.result_file": result_file,
+          "employees.$.result_ready": result_ready
+        }
+      },
+      { new: true }
+    );
+    
+    if (!corporateBooking) {
+      return res.status(404).json({ status: 0, message: "Corporate booking or employee not found" });
+    }
+    
+    res.json({ status: 1, message: "Employee result updated successfully", data: corporateBooking });
+  } catch (error) {
+    res.status(500).json({ status: 0, message: "Error updating employee result", error: error.message });
+  }
+});
+
+// Add staff member to corporate booking (Admin only)
+app.post("/api/corporate-bookings/:organizationId/staff", authMiddleware, async (req, res) => {
+  try {
+    const staffData = req.body;
+    
+    const corporateBooking = await CorporateBooking.findOneAndUpdate(
+      { organization_id: req.params.organizationId },
+      { $push: { staff_members: staffData } },
+      { new: true }
+    );
+    
+    if (!corporateBooking) {
+      return res.status(404).json({ status: 0, message: "Corporate booking not found" });
+    }
+    
+    // Recalculate total investigation cost
+    let totalCost = 0;
+    corporateBooking.staff_members.forEach(staff => {
+      totalCost += staff.individual_cost || 0;
+    });
+    
+    // Update the total cost
+    corporateBooking.total_investigation_cost = totalCost;
+    corporateBooking.staff_count = corporateBooking.staff_members.length;
+    await corporateBooking.save();
+    
+    res.json({ status: 1, message: "Staff member added successfully", data: corporateBooking });
+  } catch (error) {
+    res.status(500).json({ status: 0, message: "Error adding staff member", error: error.message });
+  }
+});
+
+// Upload staff member result file (Admin only) - Temporarily removed auth for testing
+app.put("/api/corporate-bookings/:organizationId/staff/:staffIndex/result", async (req, res) => {
+  try {
+    // Configure multer for memory storage
+    const storage = multer.memoryStorage();
+    const upload = multer({ 
+      storage: storage,
+      fileFilter: (req, file, cb) => {
+        // Accept all file types
+        cb(null, true);
+      },
+      limits: {
+        fileSize: 10 * 1024 * 1024 // 10MB limit
+      }
+    }).single('result_file');
+    
+    upload(req, res, async function (err) {
+      if (err) {
+        return res.status(500).json({ status: 0, message: "Upload failed", error: err.message });
+      }
+      
+      if (!req.file) {
+        return res.status(400).json({ status: 0, message: "No file uploaded" });
+      }
+      
+      try {
+        const staffIndex = parseInt(req.params.staffIndex);
+        
+        // Upload to Cloudinary
+        const uploadResult = await new Promise((resolve, reject) => {
+          // Determine resource type based on file extension
+          const fileExtension = req.file.originalname.toLowerCase().split('.').pop();
+          const resourceType = (fileExtension === 'pdf') ? 'raw' : 'auto';
+          
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              resource_type: resourceType,
+              folder: 'hfocus-corporate-results',
+              public_id: `${req.params.organizationId}_staff_${staffIndex}_${Date.now()}`,
+              use_filename: true,
+              unique_filename: true
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+          uploadStream.end(req.file.buffer);
+        });
+        
+        // Update corporate booking staff member
+        const corporateBooking = await CorporateBooking.findOne({ organization_id: req.params.organizationId });
+        
+        if (!corporateBooking || !corporateBooking.staff_members[staffIndex]) {
+          return res.status(404).json({ status: 0, message: "Corporate booking or staff member not found" });
+        }
+        
+        corporateBooking.staff_members[staffIndex].result_file = uploadResult.secure_url;
+        corporateBooking.staff_members[staffIndex].result_ready = true;
+        
+        await corporateBooking.save();
+        
+        res.json({ 
+          status: 1, 
+          message: "Staff member result uploaded successfully to cloud storage", 
+          data: corporateBooking,
+          cloudinary_url: uploadResult.secure_url
+        });
+      } catch (error) {
+        console.error('Cloudinary upload error:', error);
+        res.status(500).json({ status: 0, message: "Error uploading to cloud storage", error: error.message });
+      }
+    });
+   } catch (error) {
+     res.status(500).json({ status: 0, message: "Error processing upload", error: error.message });
+   }
+});
+
+// Update corporate booking with staff members and recalculate total cost
+app.put("/api/corporate-bookings/:organizationId/staff-update", authMiddleware, async (req, res) => {
+  try {
+    const { staff_members } = req.body;
+    
+    // Calculate total cost from staff members
+    let totalCost = 0;
+    staff_members.forEach(staff => {
+      totalCost += staff.individual_cost || 0;
+    });
+    
+    const corporateBooking = await CorporateBooking.findOneAndUpdate(
+      { organization_id: req.params.organizationId },
+      { 
+        staff_members: staff_members,
+        staff_count: staff_members.length,
+        total_investigation_cost: totalCost
+      },
+      { new: true }
+    );
+    
+    if (!corporateBooking) {
+      return res.status(404).json({ status: 0, message: "Corporate booking not found" });
+    }
+    
+    res.json({ status: 1, message: "Staff members updated successfully", data: corporateBooking });
+  } catch (error) {
+    res.status(500).json({ status: 0, message: "Error updating staff members", error: error.message });
+  }
+});
+
+// Recalculate total costs for all corporate bookings (Admin utility)
+app.post("/api/corporate-bookings/recalculate-costs", async (req, res) => {
+  try {
+    const corporateBookings = await CorporateBooking.find();
+    let updatedCount = 0;
+    
+    for (const booking of corporateBookings) {
+      let totalCost = 0;
+      if (booking.staff_members && booking.staff_members.length > 0) {
+        booking.staff_members.forEach(staff => {
+          // Calculate individual cost from investigations if not already set
+          let individualCost = 0;
+          if (staff.investigations && staff.investigations.length > 0) {
+            staff.investigations.forEach(inv => {
+              individualCost += inv.price || 0;
+            });
+          }
+          staff.individual_cost = individualCost;
+          totalCost += individualCost;
+        });
+      }
+      
+      booking.total_investigation_cost = totalCost;
+      booking.staff_count = booking.staff_members.length;
+      await booking.save();
+      updatedCount++;
+    }
+    
+    res.json({ 
+      status: 1, 
+      message: `Successfully recalculated costs for ${updatedCount} corporate bookings`,
+      updated_count: updatedCount
+    });
+  } catch (error) {
+    res.status(500).json({ status: 0, message: "Error recalculating costs", error: error.message });
+  }
+});
+
+// Delete corporate booking (Admin only) - Temporarily removed auth for testing
+app.delete("/api/corporate-bookings/:organizationId", async (req, res) => {
+  try {
+    const corporateBooking = await CorporateBooking.findOneAndDelete({ organization_id: req.params.organizationId });
+    
+    if (!corporateBooking) {
+      return res.status(404).json({ status: 0, message: "Corporate booking not found" });
+    }
+    
+    res.json({ status: 1, message: "Corporate booking deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ status: 0, message: "Error deleting corporate booking", error: error.message });
   }
 });
 
