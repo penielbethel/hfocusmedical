@@ -288,6 +288,7 @@ const corsOptions = {
   origin: [
     'https://hfocusmedical.com',
     'https://www.hfocusmedical.com',
+    'https://hfocusmedical.vercel.app',
     'http://localhost:3000', // For local development
     'http://localhost:5000'  // For local development
   ],

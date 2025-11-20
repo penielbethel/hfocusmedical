@@ -2,6 +2,7 @@
   "name": "hfocusmedical",
   "version": "1.0.0",
   "description": "H-Focus Medical Lab backend",
+  "homepage": "https://hfocusmedical.vercel.app",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
