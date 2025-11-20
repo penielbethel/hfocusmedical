@@ -438,13 +438,13 @@
                                                 </div>
 
                                                 <!-- Submit Button -->
-                                                <div class="form-group">
-                                                    <button type="button" id="submit" class="btn btn-primary btn-block text-white justify-content-center p-2 py-3 mt-0" onclick="saveAppo()" style="background: linear-gradient(135deg, #228B22, #2ECC71); border: none; border-radius: 12px; padding: 18px 30px; font-size: 18px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(34, 139, 34, 0.3); position: relative; overflow: hidden;">
-                                                        <span style="position: relative; z-index: 2;"><i class="fas fa-calendar-check" style="margin-right: 10px;"></i>Book My Appointment</span>
-                                                        <div style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.5s; z-index: 1;"></div>
-                                                    </button>
-                                                </div>
-                                            </form>
+                        <div class="form-group">
+                            <button type="button" id="submit" class="btn btn-primary btn-block text-white justify-content-center p-2 py-3 mt-0" onclick="saveAppo()" style="background: linear-gradient(135deg, #228B22, #2ECC71); border: none; border-radius: 12px; padding: 18px 30px; font-size: 18px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(34, 139, 34, 0.3); position: relative; overflow: hidden;">
+                                <span style="position: relative; z-index: 2;"><i class="fas fa-calendar-check" style="margin-right: 10px;"></i>Book My Appointment</span>
+                                <div style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.5s; z-index: 1;"></div>
+                            </button>
+                        </div>
+                    </form>
 
                                         </div>
 <!-- ✅ SUCCESS TAB -->
@@ -487,12 +487,23 @@
                                 </div>
                             </div>
 
-                        </div>
                     </div>
                 </div>
-
             </div>
+
         </div>
+    </div>
+
+    <div id="bookingLoading" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); display: none; z-index: 99999;">
+        <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:#fff; border-radius:16px; padding:24px; width:90%; max-width:420px; box-shadow:0 20px 40px rgba(0,0,0,0.2); text-align:center;">
+            <div style="font-weight:700; color:#2c3e50; font-size:18px; margin-bottom:8px;">Please wait while we accept and process your booking</div>
+            <div style="color:#7f8c8d; font-size:13px; margin-bottom:16px;">Do not refresh or close this page</div>
+            <div style="background:#e9ecef; border-radius:12px; overflow:hidden; height:12px;">
+                <div id="bookingLoadingBar" style="width:0%; height:100%; background: linear-gradient(135deg, #228B22, #2ECC71);"></div>
+            </div>
+            <div id="bookingLoadingPercent" style="margin-top:10px; font-weight:600; color:#228B22;">0%</div>
+        </div>
+    </div>
 
         <footer>
             <div class="curve"></div>
@@ -608,44 +619,27 @@
 function getDatesAccordingDep(sel) {
     var depvalue = $('select#department option:selected').val();
 
-    $.ajax({
-        type: "GET",
-        dataType: 'JSON',
-        url: "https://hfocusmedical.vercel.app/api/public/appointments/slots",
-        data: {
-            date: sel.value,
-            department: depvalue
-        },
-        success: function (resp) {
-            var slotAppneder = '';
-            if (resp.status) {
-                var slots = resp.slots;
-                if (slots.length > 0) {
-                    for (var v = 0; v < slots.length; v++) {
-                        slotAppneder += `
-                          <div class="custom-radio">
-                            <input type="radio" name="booking_time" id="time${v}" value="${slots[v]}"> 
-                            <label for="time${v}"><span>${slots[v]}<br> Available</span></label>
-                          </div>`;
-                    }
-                } else {
-                    slotAppneder = `
-                      <div class="custom-radio">
-                        <input type="radio" disabled name="booking_time" id="time1"> 
-                        <label for="time1"> No Slots Available </label>
-                      </div>`;
-                }
-            }
-            $("#all_available_slots").html(slotAppneder);
-        },
-        error: function () {
-            $("#all_available_slots").html(`
+    function generateSlots(date, department) {
+        return ['09:00 AM','10:00 AM','11:00 AM','12:00 PM','01:00 PM','02:00 PM','03:00 PM','04:00 PM'];
+    }
+    var slots = generateSlots(sel.value, depvalue);
+    var slotAppneder = '';
+    if (slots.length > 0) {
+        for (var v = 0; v < slots.length; v++) {
+            slotAppneder += `
               <div class="custom-radio">
-                <input type="radio" disabled name="booking_time" id="time1"> 
-                <label for="time1"> No Slots Available </label>
-              </div>`);
+                <input type="radio" name="booking_time" id="time${v}" value="${slots[v]}"> 
+                <label for="time${v}"><span>${slots[v]}<br> Available</span></label>
+              </div>`;
         }
-    });
+    } else {
+        slotAppneder = `
+          <div class="custom-radio">
+            <input type="radio" disabled name="booking_time" id="time1"> 
+            <label for="time1"> No Slots Available </label>
+          </div>`;
+    }
+    $("#all_available_slots").html(slotAppneder);
 }
 
 
@@ -703,6 +697,7 @@ function getDatesAccordingDep(sel) {
 
     if (!errorReturns) {
         $('#submit').hide();
+        showBookingLoading();
 
         $.ajax({
             type: "POST",
@@ -739,6 +734,7 @@ function getDatesAccordingDep(sel) {
                     // Switch to success tab
                     $("#first_tab").hide();
                     $("#second_tab").show();
+                    hideBookingLoading(true);
 
                     // ✅ PDF Download
                     $("#download_pdf").off("click").on("click", function () {
@@ -907,7 +903,12 @@ function getDatesAccordingDep(sel) {
 
                 } else {
                     $('#submit').show();
+                    hideBookingLoading(false);
                 }
+            }
+            , error: function(){
+                $('#submit').show();
+                hideBookingLoading(false);
             }
         });
     }
@@ -917,36 +918,33 @@ function getDatesAccordingDep(sel) {
 
 function showDates() {
   const department = $("#department").val();
-
   if (!department) {
-    $("#booking_date")
-      .prop("disabled", true)
-      .html('<option value="">Select Department First</option>');
+    $("#booking_date").prop("disabled", true).html('<option value="">Select Department First</option>');
     return;
   }
-
-  $.get(`https://hfocusmedical.vercel.app/api/public/appointments/available-dates/${encodeURIComponent(department)}`, function (response) {
-    if (response.status === 1 && response.dates.length > 0) {
-      let options = '<option value="">Select Date</option>';
-      response.dates.forEach(date => {
-        options += `<option value="${date}">${date}</option>`;
-      });
-
-      $("#booking_date").prop("disabled", false).html(options);
-    } else {
-      $("#booking_date")
-        .prop("disabled", true)
-        .html('<option value="">No Dates Available</option>');
-    }
-
-    // Reset slots whenever department changes
-    $("#all_available_slots").html(`
-      <div class="custom-radio">
-        <input type="radio" disabled="disabled" name="booking_time" id="time1"> 
-        <label for="time1"> Select Date </label>
-      </div>
-    `);
-  });
+  const today = new Date();
+  const dates = [];
+  for (let i = 0; i < 14; i++) {
+    const d = new Date();
+    d.setDate(today.getDate() + i);
+    if (d.getDay() === 0) continue;
+    const day = ("0" + d.getDate()).slice(-2);
+    const month = ("0" + (d.getMonth() + 1)).slice(-2);
+    dates.push(`${d.getFullYear()}-${month}-${day}`);
+  }
+  if (dates.length > 0) {
+    let options = '<option value="">Select Date</option>';
+    dates.forEach(date => { options += `<option value="${date}">${date}</option>`; });
+    $("#booking_date").prop("disabled", false).html(options);
+  } else {
+    $("#booking_date").prop("disabled", true).html('<option value="">No Dates Available</option>');
+  }
+  $("#all_available_slots").html(`
+    <div class="custom-radio">
+      <input type="radio" disabled="disabled" name="booking_time" id="time1"> 
+      <label for="time1"> Select Date </label>
+    </div>
+  `);
 }
 
         function dateConverterOfFormate(now) {
@@ -971,6 +969,29 @@ function showDates() {
         function validateEmail($email) {
             var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
             return emailReg.test($email);
+        }
+        var bookingLoadingTimer = null;
+        var bookingLoadingValue = 0;
+        function showBookingLoading(){
+            bookingLoadingValue = 0;
+            $("#bookingLoading").fadeIn(150);
+            updateBookingLoading(0);
+            bookingLoadingTimer = setInterval(function(){
+                if(bookingLoadingValue < 90){
+                    bookingLoadingValue += Math.max(1, Math.floor(Math.random()*4));
+                    if(bookingLoadingValue > 90) bookingLoadingValue = 90;
+                    updateBookingLoading(bookingLoadingValue);
+                }
+            }, 200);
+        }
+        function updateBookingLoading(v){
+            $("#bookingLoadingBar").css("width", v+"%");
+            $("#bookingLoadingPercent").text(v+"%");
+        }
+        function hideBookingLoading(final){
+            if(final){ updateBookingLoading(100); }
+            if(bookingLoadingTimer){ clearInterval(bookingLoadingTimer); bookingLoadingTimer = null; }
+            setTimeout(function(){ $("#bookingLoading").fadeOut(200); }, final ? 300 : 0);
         }
     </script>
     
