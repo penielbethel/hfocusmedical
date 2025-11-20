@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Busboy = require('busboy');
 const cloudinary = require('cloudinary').v2;
+const { jsPDF } = require('jspdf');
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -38,6 +39,7 @@ const appointmentSchema = new mongoose.Schema({
   dob: String,
   mobile_no: String,
   email: String,
+  weight: Number,
   center_name: String,
   result_ready: Boolean,
   result_file: String,
@@ -80,7 +82,8 @@ const corpSchema = new mongoose.Schema({
 const CorporateBooking = mongoose.models.CorporateBooking || mongoose.model('CorporateBooking', corpSchema);
 
 function generateUniqueId() {
-  return 'HF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+  const randomNum = Math.floor(100000 + Math.random() * 900000);
+  return 'HFML' + randomNum;
 }
 function generateBookingId() {
   const now = new Date();
@@ -91,12 +94,220 @@ function generateBookingId() {
   return `BK-${yyyy}${mm}${dd}-${rand}`;
 }
 
-async function sendMail({ to, subject, html, replyTo }) {
+async function sendMail(options) {
   const transporter = nodemailer.createTransport({
     service: 'Gmail',
     auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
   });
-  await transporter.sendMail({ from: `"H-Focus Medical Laboratory" <${process.env.EMAIL_USER}>`, to, subject, html, replyTo });
+  const defaults = { from: `"H-Focus Medical Laboratory" <${process.env.EMAIL_USER}>` };
+  await transporter.sendMail({ ...defaults, ...options });
+}
+
+function generateAppointmentPDF(appointmentData) {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true, precision: 2 });
+  doc.setFillColor(34, 139, 34);
+  doc.rect(0, 0, 210, 50, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(16);
+  doc.setFont(undefined, 'bold');
+  doc.text('H-FOCUS MEDICAL LABORATORY', 105, 25, null, null, 'center');
+  doc.setFontSize(10);
+  doc.setFont(undefined, 'normal');
+  doc.text('Quality and Precise Medical Lab Services', 105, 35, null, null, 'center');
+  doc.text('havefocusgroups@gmail.com | www.hfocusmedical.com', 105, 42, null, null, 'center');
+  doc.setTextColor(0, 0, 0);
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(15, 60, 180, 120, 5, 5, 'F');
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(15, 60, 180, 120, 5, 5, 'S');
+  doc.setFillColor(34, 139, 34);
+  doc.roundedRect(25, 70, 160, 15, 3, 3, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(12);
+  doc.setFont(undefined, 'bold');
+  doc.text('APPOINTMENT CONFIRMATION', 105, 80, null, null, 'center');
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(9);
+  doc.setFont(undefined, 'normal');
+  let yPos = 95;
+  doc.text(`Booking ID: ${appointmentData.booking_id}`, 30, yPos);
+  doc.text(`Unique ID: ${appointmentData.unique_id}`, 30, yPos + 8);
+  doc.text(`Patient: ${appointmentData.first_name} ${appointmentData.last_name}`, 30, yPos + 16);
+  doc.text(`Department: ${appointmentData.department}`, 30, yPos + 24);
+  doc.text(`Date: ${appointmentData.booking_date}`, 30, yPos + 32);
+  doc.text(`Time: ${appointmentData.booking_time}`, 30, yPos + 40);
+  doc.text(`Email: ${appointmentData.email}`, 30, yPos + 48);
+  doc.text(`Mobile: ${appointmentData.mobile}`, 30, yPos + 56);
+  doc.setFillColor(255, 243, 205);
+  doc.roundedRect(25, 190, 160, 20, 3, 3, 'F');
+  doc.setFontSize(8);
+  doc.setFont(undefined, 'bold');
+  doc.text('IMPORTANT: Please bring this confirmation on appointment day', 105, 202, null, null, 'center');
+  doc.setTextColor(100, 100, 100);
+  doc.setFontSize(7);
+  doc.text(`Generated on: ${new Date().toLocaleString()}`, 105, 270, null, null, 'center');
+  return doc.output('arraybuffer');
+}
+
+function getPatientEmailTemplate(appointment, pdfBuffer) {
+  return {
+    from: `"H-Focus Medical Laboratory" <${process.env.EMAIL_USER}>`,
+    to: appointment.email,
+    subject: 'Appointment Confirmation - H-Focus Medical Laboratory',
+    replyTo: process.env.EMAIL_USER,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h2 style="color: #228B22; margin: 0;">H-Focus Medical Laboratory</h2>
+          <p style="color: #666; margin: 5px 0;">Your Health, Our Priority</p>
+        </div>
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h3 style="color: #228B22; margin-top: 0;">🎉 Appointment Confirmed!</h3>
+          <p>Dear <strong>${appointment.title} ${appointment.first_name} ${appointment.last_name}</strong>,</p>
+          <p>Your appointment has been successfully booked. Here are your appointment details:</p>
+        </div>
+        <div style="background-color: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Booking ID:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1; color: #228B22;"><strong>${appointment.booking_id}</strong></td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Unique ID:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1; color: #dc3545;"><strong>${appointment.unique_id}</strong></td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Department:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${appointment.department}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Date:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${appointment.appointment_date}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Time:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${appointment.appointment_time}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0;"><strong>Center:</strong></td>
+              <td style="padding: 8px 0;">${appointment.center_name}</td>
+            </tr>
+          </table>
+        </div>
+        <div style="background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+          <h4 style="color: #155724; margin-top: 0;">📎 PDF Confirmation Attached</h4>
+          <p style="color: #155724; margin: 0;">Your appointment confirmation PDF is attached to this email. Please download and print it to bring on your appointment day.</p>
+        </div>
+        <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+          <h4 style="color: #856404; margin-top: 0;">📋 Important Instructions:</h4>
+          <ul style="color: #856404; margin: 0; padding-left: 20px;">
+            <li>Please arrive 15 minutes before your appointment time</li>
+            <li>Bring a valid ID and the attached PDF confirmation</li>
+            <li>Keep your <strong>Unique ID (${appointment.unique_id})</strong> safe for result checking</li>
+            <li>Fast for 8-12 hours if required for your test</li>
+          </ul>
+        </div>
+        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+          <p style="color: #666; margin: 5px 0;">📞 Contact: 0700 225 4365, 0700 CAL HFML</p>
+          <p style="color: #666; margin: 5px 0;">📧 Email: support@hfocusmedical.com</p>
+          <p style="color: #666; margin: 5px 0; font-size: 12px;">Registration: OG/MOH/HS TTD/05/904C/1123</p>
+          <p style="margin: 10px 0 0 0; font-size: 10px; color: #cccccc;">This is an automated message. Please do not reply to this email.</p>
+          <p style="margin: 5px 0 0 0; font-size: 10px;"><a href="mailto:${process.env.EMAIL_USER}?subject=Unsubscribe" style="color: #cccccc; text-decoration: underline;">Unsubscribe from notifications</a></p>
+        </div>
+      </div>
+    `,
+    attachments: [
+      {
+        filename: `H-Focus_Appointment_${appointment.unique_id}.pdf`,
+        content: Buffer.from(pdfBuffer),
+        contentType: 'application/pdf'
+      }
+    ]
+  };
+}
+
+function getCompanyEmailTemplate(appointment) {
+  return {
+    from: `"H-Focus Medical Laboratory" <${process.env.EMAIL_USER}>`,
+    to: process.env.EMAIL_USER,
+    subject: `New Appointment Booking Notification - ${appointment.department}`,
+    replyTo: process.env.EMAIL_USER,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h2 style="color: #228B22; margin: 0;">H-Focus Medical Laboratory</h2>
+          <p style="color: #666; margin: 5px 0;">New Appointment Notification</p>
+        </div>
+        <div style="background-color: #e7f3ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h3 style="color: #0066cc; margin-top: 0;">🔔 New Appointment Booked</h3>
+          <p>A new appointment has been booked on your system. Please review the details below:</p>
+        </div>
+        <div style="background-color: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+          <h4 style="color: #333; margin-top: 0;">Patient Information:</h4>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Name:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${appointment.title} ${appointment.first_name} ${appointment.last_name}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Gender:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${appointment.gender}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>DOB:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${appointment.dob}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Mobile:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${appointment.mobile_no}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Email:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${appointment.email}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0;"><strong>Weight:</strong></td>
+              <td style="padding: 8px 0;">${appointment.weight} kg</td>
+            </tr>
+          </table>
+        </div>
+        <div style="background-color: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+          <h4 style="color: #333; margin-top: 0;">Appointment Details:</h4>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Booking ID:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1; color: #228B22;"><strong>${appointment.booking_id}</strong></td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Unique ID:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1; color: #dc3545;"><strong>${appointment.unique_id}</strong></td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Department:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${appointment.department}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Date:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${appointment.appointment_date}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Time:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${appointment.appointment_time}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0;"><strong>Center:</strong></td>
+              <td style="padding: 8px 0;">${appointment.center_name}</td>
+            </tr>
+          </table>
+        </div>
+        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+          <p style="color: #666; margin: 5px 0; font-size: 12px;">Booked on: ${new Date().toLocaleString()}</p>
+          <p style="color: #666; margin: 5px 0; font-size: 12px;">System: H-Focus Medical Lab Management</p>
+        </div>
+      </div>
+    `
+  };
 }
 
 function jsonBody(req) {
@@ -131,7 +342,23 @@ module.exports = async (req, res) => {
         to: 'info@hfocusmedical.com',
         replyTo: email,
         subject: `New Contact Message: ${subject}`,
-        html: `<h3 style=\"color:#228B22\">Contact Form Submission</h3><p><strong>Name:</strong> ${firstName} ${lastName}</p><p><strong>Email:</strong> ${email}</p><p><strong>Phone:</strong> ${phone}</p><p><strong>Subject:</strong> ${subject}</p><p><strong>Message:</strong><br/>${message}</p>`
+        html: `
+          <div style="font-family:Arial, sans-serif; max-width:640px; margin:auto; border:1px solid #e5e5e5; border-radius:10px; overflow:hidden;">
+            <div style="background:#228B22; color:#fff; padding:12px 18px;">
+              <h3 style="margin:0; font-size:18px;">H-Focus Medical Laboratory</h3>
+              <div style="font-size:13px; opacity:0.9;">New Contact Submission</div>
+            </div>
+            <div style="padding:18px;">
+              <table style="width:100%; border-collapse:collapse; font-size:14px;">
+                <tr><td style="padding:6px 8px; font-weight:600;">Name</td><td style="padding:6px 8px;">${firstName} ${lastName}</td></tr>
+                <tr><td style="padding:6px 8px; font-weight:600;">Email</td><td style="padding:6px 8px;">${email}</td></tr>
+                <tr><td style="padding:6px 8px; font-weight:600;">Phone</td><td style="padding:6px 8px;">${phone}</td></tr>
+                <tr><td style="padding:6px 8px; font-weight:600;">Subject</td><td style="padding:6px 8px;">${subject}</td></tr>
+              </table>
+              <div style="margin-top:12px; font-size:14px;"><strong>Message:</strong><br/>${message}</div>
+              <div style="margin-top:12px; font-size:12px; color:#555;">Submitted on ${new Date().toLocaleString()}</div>
+            </div>
+          </div>`
       });
       return res.status(200).json({ status: 1, message: 'Message sent successfully' });
     }
@@ -146,8 +373,34 @@ module.exports = async (req, res) => {
       const bookingId = generateBookingId();
       const newAppointment = new Appointment({ ...body, booking_id: bookingId, unique_id: uniqueId });
       await newAppointment.save();
-      try { await sendMail({ to: newAppointment.email, subject: `Appointment Confirmation - ${newAppointment.department}`, html: `<h3 style=\"color:#228B22\">Appointment Confirmed</h3><p><strong>Booking ID:</strong> ${newAppointment.booking_id}</p><p><strong>Unique ID:</strong> ${newAppointment.unique_id}</p><p><strong>Date:</strong> ${newAppointment.appointment_date}</p><p><strong>Time:</strong> ${newAppointment.appointment_time}</p>` }); } catch {}
-      try { await sendMail({ to: process.env.EMAIL_USER, subject: `New Appointment Booking - ${newAppointment.department}`, html: `Booking ID ${newAppointment.booking_id}, Unique ID ${newAppointment.unique_id}` }); } catch {}
+      let pdfBuffer;
+      try {
+        pdfBuffer = generateAppointmentPDF({
+          booking_id: newAppointment.booking_id,
+          unique_id: newAppointment.unique_id,
+          first_name: newAppointment.first_name || '',
+          last_name: newAppointment.last_name || '',
+          department: newAppointment.department || '',
+          booking_date: newAppointment.appointment_date || '',
+          booking_time: newAppointment.appointment_time || '',
+          email: newAppointment.email || '',
+          mobile: newAppointment.mobile_no || ''
+        });
+      } catch {}
+      try {
+        if (pdfBuffer) {
+          await sendMail(getPatientEmailTemplate(newAppointment, pdfBuffer));
+        } else {
+          await sendMail({
+            to: newAppointment.email,
+            subject: `Appointment Confirmation - ${newAppointment.department}`,
+            html: `<div style="font-family:Arial, sans-serif; max-width:640px; margin:auto; border:1px solid #e5e5e5; border-radius:10px; overflow:hidden;"><div style="background:#228B22; color:#fff; padding:12px 18px;"><h3 style="margin:0; font-size:18px;">H-Focus Medical Laboratory</h3><div style="font-size:13px; opacity:0.9;">Appointment Confirmation</div></div><div style="padding:18px;"><table style="width:100%; border-collapse:collapse; font-size:14px;"><tr><td style="padding:6px 8px; font-weight:600;">Booking ID</td><td style="padding:6px 8px;">${newAppointment.booking_id}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Unique ID</td><td style="padding:6px 8px;">${newAppointment.unique_id}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Department</td><td style="padding:6px 8px;">${newAppointment.department || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Center</td><td style="padding:6px 8px;">${newAppointment.center_name || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Date</td><td style="padding:6px 8px;">${newAppointment.appointment_date || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Time</td><td style="padding:6px 8px;">${newAppointment.appointment_time || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Title</td><td style="padding:6px 8px;">${newAppointment.title || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Patient</td><td style="padding:6px 8px;">${newAppointment.first_name || ''} ${newAppointment.last_name || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Gender</td><td style="padding:6px 8px;">${newAppointment.gender || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">DOB</td><td style="padding:6px 8px;">${newAppointment.dob || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Mobile</td><td style="padding:6px 8px;">${newAppointment.mobile_no || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Email</td><td style="padding:6px 8px;">${newAppointment.email || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Weight</td><td style="padding:6px 8px;">${newAppointment.weight || ''}</td></tr></table><div style="margin-top:12px; font-size:12px; color:#555;">Please keep your Unique ID for result checking.</div></div></div>`
+          });
+        }
+      } catch {}
+      try {
+        await sendMail(getCompanyEmailTemplate(newAppointment));
+      } catch {}
       return res.status(200).json({ status: 1, message: 'Appointment saved successfully', data: newAppointment });
     }
 
