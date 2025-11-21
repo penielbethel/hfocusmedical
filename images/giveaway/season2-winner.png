@@ -1,0 +1,8 @@
+<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="200" fill="#28a745" stroke="#1e7e34" stroke-width="3"/>
+  <circle cx="150" cy="60" r="25" fill="#ffd700" stroke="#ffb300" stroke-width="2"/>
+  <text x="150" y="67" text-anchor="middle" font-family="Arial" font-size="16" fill="#fff" font-weight="bold">🏆</text>
+  <text x="150" y="110" text-anchor="middle" font-family="Arial" font-size="18" fill="#fff" font-weight="bold">Season 2 Winner</text>
+  <text x="150" y="135" text-anchor="middle" font-family="Arial" font-size="14" fill="#fff">Congratulations!</text>
+  <text x="150" y="165" text-anchor="middle" font-family="Arial" font-size="12" fill="#e8f5e8">H-Focus Medical Laboratory</text>
+</svg>

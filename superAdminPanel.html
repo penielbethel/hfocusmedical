@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Admin Panel - HFML</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body class="bg-light">
+
+  <div class="container py-5">
+    <h2 class="text-center mb-4">Super Admin Panel</h2>
+
+    <!-- Login Form -->
+    <div id="loginSection" class="card p-4 shadow-sm mb-4">
+  <h4>Login</h4>
+  <form id="loginForm">
+    <input type="text" id="username" class="form-control mb-2" placeholder="Username" required>
+    <input type="password" id="password" class="form-control mb-2" placeholder="Password" required>
+    <button type="submit" class="btn btn-primary btn-block">Login</button>
+  </form>
+</div>
+
+
+    <!-- Admin Management -->
+    <div id="adminSection" class="d-none">
+
+      <!-- Token Management -->
+      <div class="card p-4 shadow-sm mb-4">
+        <h4>Generate One-Time Token</h4>
+        <button class="btn btn-warning mb-3" onclick="generateToken()">
+          <i class="fas fa-key"></i> Generate Token
+        </button>
+        <ul class="list-group" id="tokensList"></ul>
+      </div>
+
+      <!-- Admins List -->
+      <div class="card p-4 shadow-sm">
+        <h4>All Admin Users</h4>
+        <table class="table table-bordered mt-3">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Created At</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="adminsTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    const API_ROOT = location.origin + '/api';
+    let token = "";
+
+$("#loginForm").on("submit", async function(e) {
+  e.preventDefault();
+  const res = await fetch(API_ROOT + "/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: $("#username").val(),
+      password: $("#password").val()
+    })
+  });
+  const data = await res.json();
+  if (data.status === 1 && data.role === "superadmin") {
+    token = data.token;
+    $("#loginSection").hide();
+    $("#adminSection").removeClass("d-none");
+    loadAdmins();
+    loadTokens();
+  } else {
+    alert("Invalid SuperAdmin credentials");
+  }
+});
+
+
+// Generate new one-time token
+async function generateToken() {
+  const res = await fetch(API_ROOT + "/auth/generate-token", {
+    method: "POST",
+    headers: { "Authorization": "Bearer " + token }
+  });
+  const data = await res.json();
+  if (data.status === 1) {
+    alert("Token generated: " + data.token);
+    loadTokens();
+  } else {
+    alert("Error generating token");
+  }
+}
+
+// Load active tokens
+async function loadTokens() {
+  const res = await fetch(API_ROOT + "/auth/tokens", {
+    headers: { "Authorization": "Bearer " + token }
+  });
+  const data = await res.json();
+  if (data.status === 1) {
+    let list = "";
+    data.tokens.forEach(t => {
+      list += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                ${t.token}
+                <small class="text-muted">Created: ${new Date(t.createdAt).toLocaleString()}</small>
+               </li>`;
+    });
+    $("#tokensList").html(list || "<li class='list-group-item'>No active tokens</li>");
+  }
+}
+
+
+    // Load admins
+    async function loadAdmins() {
+      const res = await fetch(API_ROOT + "/admins", {
+        headers: { "Authorization": "Bearer " + token }
+      });
+      const data = await res.json();
+      if (data.status === 1) {
+        let rows = "";
+        data.data.forEach(admin => {
+          rows += `
+            <tr>
+              <td>${admin.username}</td>
+              <td>${new Date(admin.created_at).toLocaleDateString()}</td>
+              <td><button class="btn btn-danger btn-sm" onclick="deleteAdmin('${admin._id}')">Delete</button></td>
+            </tr>`;
+        });
+        $("#adminsTable").html(rows);
+      }
+    }
+
+    // Delete admin
+    async function deleteAdmin(id) {
+      if (!confirm("Delete this admin?")) return;
+      const res = await fetch(API_ROOT + "/admins/" + id, {
+        method: "DELETE",
+        headers: { "Authorization": "Bearer " + token }
+      });
+      const data = await res.json();
+      if (data.status === 1) {
+        alert("Deleted successfully");
+        loadAdmins();
+      }
+    }
+  </script>
+</body>
+</html>

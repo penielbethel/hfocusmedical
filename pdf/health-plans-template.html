@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H-Focus Health Check Plans 2026</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: white;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 3px solid #057837;
+            padding-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 2.8em;
+            color: #057837;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .header .subtitle {
+            font-size: 1.3em;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .header .description {
+            font-size: 1.1em;
+            color: #555;
+            font-style: italic;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .plan-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            page-break-inside: avoid;
+        }
+        .plan-card.platinum {
+            border-color: #A73030;
+            background: linear-gradient(135deg, #fff 0%, #fdf2f2 100%);
+        }
+        .plan-card.diamond {
+            border-color: #3062A7;
+            background: linear-gradient(135deg, #fff 0%, #f2f6fd 100%);
+        }
+        .plan-card.gold {
+            border-color: #ED8D1C;
+            background: linear-gradient(135deg, #fff 0%, #fef9f2 100%);
+        }
+        .plan-card.silver {
+            border-color: #767676;
+            background: linear-gradient(135deg, #fff 0%, #f8f8f8 100%);
+        }
+        .plan-card.executive {
+            border-color: #ED4C1C;
+            background: linear-gradient(135deg, #fff 0%, #fef5f2 100%);
+        }
+        .plan-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .plan-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .plan-price {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #057837;
+        }
+        .plan-features {
+            list-style: none;
+        }
+        .plan-features li {
+            margin: 12px 0;
+            padding: 8px 0;
+            border-bottom: 1px dotted #ddd;
+            color: #555;
+            font-size: 1.05em;
+        }
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+        .plan-features li strong {
+            color: #057837;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 30px;
+            background: #057837;
+            color: white;
+            border-radius: 15px;
+        }
+        .footer h3 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .footer p {
+            font-size: 1.1em;
+            margin: 8px 0;
+        }
+        .contact-info {
+            margin-top: 20px;
+            font-size: 1em;
+        }
+        @media print {
+            body {
+                padding: 10px;
+            }
+            .plan-card {
+                break-inside: avoid;
+                margin-bottom: 20px;
+            }
+            .plans-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>H-Focus Health Check Plans</h1>
+        <div class="subtitle">Comprehensive Health Assessment Packages for 2026</div>
+        <div class="description">Transforming healthcare with precision, passion, and purpose. In today's busy world, health assessments can offer a chance to stop and take stock of your health and wellbeing.</div>
+    </div>
+
+    <div class="plans-grid">
+        <div class="plan-card platinum">
+            <div class="plan-header">
+                <div class="plan-title">Platinum Plan</div>
+                <div class="plan-price">₦ 440,500</div>
+            </div>
+            <ul class="plan-features">
+                <li><strong>DIAGNOSTIC INVESTIGATION (9)</strong></li>
+                <li>Coronary Risk Markers (8) & Lipid Profile</li>
+                <li>Renal Profile (10)</li>
+                <li>Liver Profile (7)</li>
+                <li>Diabetic Profile (4)</li>
+                <li>Cancer Risk Markers (2)</li>
+                <li>Thyroid Panel (1)</li>
+                <li>Medical Examination (3)</li>
+            </ul>
+        </div>
+
+        <div class="plan-card diamond">
+            <div class="plan-header">
+                <div class="plan-title">Diamond Plan</div>
+                <div class="plan-price">₦ 320,500</div>
+            </div>
+            <ul class="plan-features">
+                <li><strong>DIAGNOSTIC INVESTIGATION (8)</strong></li>
+                <li>Coronary Risk Markers (8) & Lipid Profile</li>
+                <li>Renal Profile (10)</li>
+                <li>Liver Profile (7)</li>
+                <li>Diabetic Profile (4)</li>
+                <li>Cancer Risk Markers (2)</li>
+                <li>Thyroid Panel (1)</li>
+                <li>Medical Examination (3)</li>
+            </ul>
+        </div>
+
+        <div class="plan-card gold">
+            <div class="plan-header">
+                <div class="plan-title">Gold Plan</div>
+                <div class="plan-price">₦ 253,000</div>
+            </div>
+            <ul class="plan-features">
+                <li><strong>DIAGNOSTIC INVESTIGATION (7)</strong></li>
+                <li>Coronary Risk Markers (6) & Lipid Profile</li>
+                <li>Renal Profile (10)</li>
+                <li>Liver Profile (7)</li>
+                <li>Diabetic Profile (4)</li>
+                <li>Cancer Risk Markers (2)</li>
+                <li>Thyroid Panel (1)</li>
+                <li>Medical Examination (3)</li>
+            </ul>
+        </div>
+
+        <div class="plan-card silver">
+            <div class="plan-header">
+                <div class="plan-title">Silver Plan</div>
+                <div class="plan-price">₦ 164,000</div>
+            </div>
+            <ul class="plan-features">
+                <li><strong>DIAGNOSTIC INVESTIGATION (7)</strong></li>
+                <li>Coronary Risk Markers (8) & Lipid Profile</li>
+                <li>Renal Profile (10)</li>
+                <li>Liver Profile (7)</li>
+                <li>Diabetic Profile (4)</li>
+                <li>Cancer Risk Markers (0)</li>
+                <li>Thyroid Panel (1)</li>
+                <li>Medical Examination (3)</li>
+            </ul>
+        </div>
+
+        <div class="plan-card executive">
+            <div class="plan-header">
+                <div class="plan-title">Executive Plan</div>
+                <div class="plan-price">₦ 131,000</div>
+            </div>
+            <ul class="plan-features">
+                <li><strong>DIAGNOSTIC INVESTIGATION (3)</strong></li>
+                <li>Coronary Risk Markers (7) & Lipid Profile</li>
+                <li>Renal Profile (10)</li>
+                <li>Liver Profile (7)</li>
+                <li>Diabetic Profile (2)</li>
+                <li>Cancer Risk Markers (0)</li>
+                <li>Thyroid Panel (1)</li>
+                <li>Medical Examination (3)</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="footer">
+        <h3>H-Focus Medical Services</h3>
+        <p><strong>Your Health, Our Priority</strong></p>
+        <div class="contact-info">
+            <p>📞 Contact us for more information about our comprehensive health check packages</p>
+            <p>🌐 Visit our website to book your appointment online</p>
+            <p>📧 Email us for personalized health consultation</p>
+        </div>
+    </div>
+
+    <script>
+        // Auto-print functionality for PDF generation
+        window.onload = function() {
+            // Uncomment the line below to auto-print when opened
+            // window.print();
+        }
+    </script>
+</body>
+</html>

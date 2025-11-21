@@ -1,0 +1,1083 @@
+/* H-Focus Medical Laboratory Services Page Styles */
+
+/* Brand Colors */
+:root {
+  --hfocus-green: #006015;
+  --hfocus-light-green: #00801f;
+  --hfocus-dark-green: #004010;
+  --accent-green: #34ce57;
+  --white: #ffffff;
+  --light-gray: #f8f9fa;
+  --dark-gray: #333333;
+  --text-gray: #666666;
+  --shadow-light: 0 2px 10px rgba(0, 96, 21, 0.1);
+  --shadow-medium: 0 4px 20px rgba(0, 96, 21, 0.15);
+  --shadow-heavy: 0 8px 30px rgba(0, 96, 21, 0.2);
+}
+
+/* Hero Section */
+.hero-section {
+  background: linear-gradient(135deg, var(--hfocus-green) 0%, var(--hfocus-light-green) 100%);
+  color: white;
+  padding: 120px 0;
+  position: relative;
+  overflow: hidden;
+  min-height: 60vh;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+  opacity: 0.3;
+}
+
+.hero-section::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  background: linear-gradient(to top, rgba(255,255,255,0.1), transparent);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.hero-title {
+  font-size: 4rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+
+  line-height: 1.2;
+}
+
+.hero-subtitle {
+  font-size: 1.4rem;
+  margin-bottom: 2.5rem;
+  opacity: 0.95;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+.hero-cta {
+  margin-top: 2rem;
+}
+
+.hero-btn {
+  background: white;
+  color: var(--hfocus-green);
+  padding: 15px 40px;
+  border-radius: 50px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-medium);
+}
+
+.hero-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-heavy);
+  color: var(--hfocus-green);
+  text-decoration: none;
+}
+
+/* Hero Image Styling */
+.hero-image img {
+  border-radius: 25px;
+  box-shadow: var(--shadow-heavy);
+  transition: all 0.3s ease;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.hero-image img:hover {
+  transform: scale(1.02);
+  box-shadow: 0 12px 40px rgba(0, 96, 21, 0.3);
+}
+
+/* Section Styling */
+.services-section {
+  padding: 80px 0;
+}
+
+.services-section:nth-child(even) {
+  background-color: var(--light-gray);
+}
+
+.section-title {
+  color: var(--hfocus-green);
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: var(--hfocus-green);
+  border-radius: 2px;
+}
+
+/* Service Cards */
+.service-card {
+  background: var(--white);
+  border-radius: 15px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  height: 100%;
+}
+
+.service-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0,96,21,0.2);
+  border-color: var(--hfocus-green);
+}
+
+.service-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--hfocus-green), var(--hfocus-light-green));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  font-size: 2rem;
+  color: white;
+  box-shadow: 0 8px 25px rgba(0, 96, 21, 0.3);
+  transition: all 0.3s ease;
+}
+
+.service-card:hover .service-icon {
+  transform: scale(1.1);
+  box-shadow: 0 12px 35px rgba(0, 96, 21, 0.4);
+}
+
+/* Ensure Microbiology icon is clearly visible */
+.service-icon .fa-bacteria {
+  color: white !important;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.service-card h4 {
+  color: var(--hfocus-green);
+  font-weight: 600;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.service-card p {
+  color: var(--text-gray);
+  line-height: 1.6;
+  text-align: center;
+}
+
+.service-list {
+  list-style: none;
+  padding: 0;
+}
+
+.service-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.service-list li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--hfocus-green);
+  font-weight: bold;
+}
+
+.service-list li:last-child {
+  border-bottom: none;
+}
+
+/* Obstetrics Section */
+.obstetrics-section {
+  padding: 100px 0;
+  background: linear-gradient(135deg, rgba(0, 96, 21, 0.05) 0%, rgba(52, 206, 87, 0.05) 100%);
+  position: relative;
+}
+
+.obstetrics-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(0,96,21,0.1)"/><circle cx="80" cy="80" r="2" fill="rgba(52,206,87,0.1)"/><circle cx="60" cy="30" r="1.5" fill="rgba(0,96,21,0.08)"/></svg>');
+  opacity: 0.6;
+}
+
+.obstetrics-content {
+  padding: 2rem 0;
+  position: relative;
+  z-index: 2;
+}
+
+.obstetrics-features {
+  display: grid;
+  gap: 2.5rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  background: white;
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: var(--shadow-light);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 96, 21, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--hfocus-green), var(--accent-green));
+}
+
+.feature-item:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-heavy);
+  border-color: var(--hfocus-green);
+}
+
+.feature-icon {
+  background: linear-gradient(135deg, var(--hfocus-green), var(--accent-green));
+  color: white;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1.5rem;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-medium);
+  transition: all 0.3s ease;
+}
+
+.feature-item:hover .feature-icon {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-heavy);
+}
+
+.feature-icon i {
+  font-size: 1.5rem;
+}
+
+.feature-content h5 {
+  color: var(--hfocus-green);
+  margin-bottom: 0.8rem;
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+
+.feature-content p {
+  color: var(--text-gray);
+  margin: 0;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.obstetrics-image {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--shadow-medium);
+}
+
+.obstetrics-image img {
+  width: 100%;
+  height: auto;
+  transition: transform 0.3s ease;
+}
+
+.obstetrics-image:hover img {
+  transform: scale(1.05);
+}
+
+.image-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 96, 21, 0.9), transparent);
+  color: white;
+  padding: 2rem;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.obstetrics-image:hover .image-overlay {
+  transform: translateY(0);
+}
+
+.overlay-content h4 {
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.overlay-content p {
+  margin: 0;
+  opacity: 0.9;
+}
+
+/* Obstetrics Special Section */
+.obstetrics-hero {
+  background: linear-gradient(135deg, var(--hfocus-green) 0%, var(--hfocus-light-green) 100%);
+  color: var(--white);
+  padding: 60px 0;
+  margin: 60px 0;
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.obstetrics-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 200px;
+  height: 200px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 50%;
+}
+
+.obstetrics-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -10%;
+  width: 150px;
+  height: 150px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 50%;
+}
+
+.obstetrics-hero .container {
+  position: relative;
+  z-index: 2;
+}
+
+.obstetrics-hero h2 {
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.obstetrics-hero p {
+  font-size: 1.2rem;
+  opacity: 0.95;
+}
+
+.obstetrics-card {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 15px 35px rgba(0,96,21,0.15);
+  transition: all 0.3s ease;
+  border: 3px solid var(--hfocus-green);
+  position: relative;
+  overflow: hidden;
+}
+
+.obstetrics-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(90deg, var(--hfocus-green), var(--hfocus-light-green));
+}
+
+.obstetrics-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 25px 50px rgba(0,96,21,0.25);
+}
+
+.obstetrics-icon {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, var(--hfocus-green), var(--hfocus-light-green));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 2rem;
+  font-size: 2.5rem;
+  color: var(--white);
+  box-shadow: 0 10px 20px rgba(0,96,21,0.3);
+}
+
+/* Laboratory Tests Section */
+.lab-tests-section {
+  padding: 100px 0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.section-subtitle {
+  font-size: 1.2rem;
+  color: var(--text-gray);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Lab Tests Grid */
+.lab-tests-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.lab-test-category {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: var(--shadow-light);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 96, 21, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.lab-test-category::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--hfocus-green), var(--accent-green));
+}
+
+.lab-test-category:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-heavy);
+  border-color: var(--hfocus-green);
+}
+
+.lab-test-category h5 {
+  color: var(--hfocus-green);
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.lab-test-category h5::before {
+  content: '🧪';
+  margin-right: 10px;
+  font-size: 1.2rem;
+}
+
+.test-category {
+  background: white;
+  border-radius: 20px;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-light);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 96, 21, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.test-category::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--hfocus-green), var(--accent-green));
+}
+
+.test-category:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-heavy);
+  border-color: var(--hfocus-green);
+}
+
+.test-category h4 {
+  color: var(--hfocus-green);
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.test-category h4::before {
+  content: '🧪';
+  margin-right: 10px;
+  font-size: 1.2rem;
+}
+
+.test-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.test-list li {
+  padding: 0.8rem 0;
+  border-bottom: 1px solid rgba(0, 96, 21, 0.1);
+  position: relative;
+  padding-left: 2rem;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.test-list li:before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--hfocus-green);
+  font-weight: bold;
+  font-size: 1.1rem;
+  top: 0.8rem;
+}
+
+.test-list li:hover {
+  color: var(--hfocus-green);
+  padding-left: 2.5rem;
+}
+
+.test-list li:last-child {
+  border-bottom: none;
+}
+
+/* Diagnostic Services */
+.diagnostic-services {
+  padding: 100px 0;
+  background: white;
+}
+
+.diagnostic-card {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--shadow-light);
+  transition: all 0.3s ease;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(0, 96, 21, 0.1);
+  position: relative;
+}
+
+.diagnostic-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--hfocus-green), var(--accent-green));
+  z-index: 2;
+}
+
+.diagnostic-card:hover {
+  transform: translateY(-10px);
+  box-shadow: var(--shadow-heavy);
+  border-color: var(--hfocus-green);
+}
+
+.diagnostic-image {
+  height: 250px;
+  overflow: hidden;
+  position: relative;
+}
+
+.diagnostic-image::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, transparent 0%, rgba(0, 96, 21, 0.1) 100%);
+}
+
+.diagnostic-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.diagnostic-card:hover .diagnostic-image img {
+  transform: scale(1.08);
+}
+
+.diagnostic-content {
+  padding: 2.5rem;
+  position: relative;
+}
+
+.diagnostic-content h4 {
+  color: var(--hfocus-green);
+  margin-bottom: 1.2rem;
+  font-weight: 700;
+  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+}
+
+.diagnostic-content h4::before {
+  content: '🏥';
+  margin-right: 12px;
+  font-size: 1.3rem;
+}
+
+.diagnostic-content p {
+  color: var(--text-gray);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.diagnostic-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.diagnostic-content li {
+  padding: 0.6rem 0;
+  position: relative;
+  padding-left: 2rem;
+  color: var(--dark-gray);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.diagnostic-content li:before {
+  content: '▶';
+  position: absolute;
+  left: 0;
+  color: var(--hfocus-green);
+  font-weight: bold;
+  font-size: 0.8rem;
+  top: 0.7rem;
+}
+
+.diagnostic-content li:hover {
+  color: var(--hfocus-green);
+  padding-left: 2.3rem;
+}
+
+.diagnostic-service {
+  background: var(--white);
+  border-radius: 15px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.diagnostic-service:hover {
+  border-color: var(--hfocus-green);
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0,96,21,0.2);
+}
+
+.diagnostic-icon {
+  width: 70px;
+  height: 70px;
+  background: var(--hfocus-green);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  color: var(--white);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .services-hero h1 {
+    font-size: 2.5rem;
+  }
+  
+  .section-title {
+    font-size: 2rem;
+  }
+  
+  .obstetrics-hero h2 {
+    font-size: 2.2rem;
+  }
+  
+  .service-card,
+  .obstetrics-card {
+    padding: 1.5rem;
+  }
+  
+  .lab-tests-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Contact Info Cards */
+.contact-info-card {
+  background: #ffffff;
+  border-radius: 15px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  height: 100%;
+}
+
+.contact-info-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0, 96, 21, 0.15);
+  border-color: #006015;
+}
+
+.contact-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #006015, #228B22);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 30px;
+  color: white;
+  box-shadow: 0 8px 25px rgba(0, 96, 21, 0.3);
+}
+
+.contact-info-card h5 {
+  color: #006015;
+  font-weight: 600;
+  margin-bottom: 15px;
+  font-size: 1.4rem;
+}
+
+.contact-info-card p {
+  color: #666;
+  margin-bottom: 8px;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.contact-info-card p:last-child {
+  margin-bottom: 0;
+}
+
+.contact-phones {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.contact-info-card .phone-number {
+  color: #006015;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.contact-info-card .phone-number:hover {
+  color: #228B22;
+  text-decoration: none;
+}
+
+.contact-info-card .phone-label {
+  font-size: 0.9rem;
+  color: #888;
+  margin-bottom: 5px;
+}
+
+.contact-phones p {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.contact-phones i {
+  color: #006015;
+  font-size: 1.1rem;
+}
+
+/* Why Choose Us Section */
+.why-choose-section {
+  background: linear-gradient(135deg, var(--hfocus-green) 0%, var(--hfocus-light-green) 100%);
+  padding: 120px 0;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.why-choose-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="2" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+  opacity: 0.6;
+}
+
+.why-choose-section::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.why-choose-section .section-header {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 5rem;
+}
+
+.why-choose-section .section-title {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.why-choose-section .section-title::after {
+  background: white;
+}
+
+.why-choose-section .section-subtitle {
+  font-size: 1.3rem;
+  opacity: 0.95;
+  max-width: 700px;
+}
+
+.benefit-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 25px;
+  padding: 3rem 2rem;
+  text-align: center;
+  transition: all 0.4s ease;
+  height: 100%;
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.benefit-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.8), rgba(255,255,255,0.4));
+}
+
+.benefit-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.benefit-icon {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1));
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 2rem;
+  font-size: 2.2rem;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.benefit-card:hover .benefit-icon {
+  transform: scale(1.1) rotate(5deg);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.2));
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.benefit-card h5 {
+  font-weight: 700;
+  margin-bottom: 1.2rem;
+  font-size: 1.8rem;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+  color: white;
+}
+
+.benefit-card p {
+  opacity: 0.95;
+  line-height: 1.7;
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: white;
+}
+
+/* Our Locations Section */
+.contact-info-card {
+  background: white;
+  border-radius: 20px;
+  padding: 3rem 2.5rem;
+  box-shadow: var(--shadow-medium);
+  border: 1px solid rgba(0, 96, 21, 0.1);
+  transition: all 0.3s ease;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.contact-info-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--hfocus-green), var(--accent-green));
+}
+
+.contact-info-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-heavy);
+  border-color: var(--hfocus-green);
+}
+
+.contact-icon {
+  background: linear-gradient(135deg, var(--hfocus-green), var(--accent-green));
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 2rem;
+  color: white;
+  font-size: 2rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(0, 96, 21, 0.3);
+}
+
+.contact-info-card:hover .contact-icon {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 12px 35px rgba(0, 96, 21, 0.4);
+}
+
+.contact-info-card h5 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--hfocus-green);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.contact-info-card p {
+  color: #666;
+  margin-bottom: 0.8rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.contact-phones {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid rgba(0, 96, 21, 0.1);
+}
+
+.contact-phones p {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  font-weight: 600;
+  color: var(--hfocus-green);
+  margin-bottom: 1rem;
+}
+
+.contact-phones i {
+  color: var(--accent-green);
+  font-size: 1.1rem;
+}
+
+/* Animation Classes */
+.fade-in {
+  animation: fadeIn 0.6s ease-in;
+}
+
+.slide-up {
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

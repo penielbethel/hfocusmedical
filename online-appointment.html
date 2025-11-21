@@ -1,0 +1,1000 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>
+        H-Focus Medical Laboratory | Online Appointment Booking
+    </title>
+
+    <link rel="shortcut icon" type="image/x-icon" href="images/red.png" />
+    <link rel="canonical" href="https://www.hfocusmedical.com" />
+    <meta name="keywords"
+        content="H-Focus Medical Laboratory,(MHL),Nigeria,Healthcare,Testing centers Sango">
+    <meta property="og:site_name" content="H-Focus Medical Laboratory (MHL)" />
+    <meta property="og:title" content="H-Focus Medical Laboratory (MHL) " />
+    <meta property="og:url" content="https://www.hfocusmedical.com" />
+    <meta property="og:type" content="website" />
+    <meta property="og:description" content="&quot;We are your trusted healthcare partner.&quot;" />
+    <meta property="og:image" content="images/MHL_SEO.jpg" />
+    <meta property="og:image:width" content="559" />
+    <meta property="og:image:height" content="224" />
+    <meta itemprop="name" content="H-Focus Medical Laboratory (MHL) " />
+    <meta itemprop="url" content="https://www.hfocusmedical.com" />
+    <meta itemprop="description" content="&quot;We are your trusted healthcare partner.&quot;" />
+    <meta itemprop="thumbnailUrl" content="images/MHL_SEO.jpg" />
+    <link rel="image_src" href="images/MHL_SEO.jpg" />
+    <meta itemprop="image" content="images/MHL_SEO.jpg" />
+    <meta name="twitter:title" content="H-Focus Medical Laboratory (MHL) " />
+    <meta name="twitter:image" content="images/MHL_SEO.jpg" />
+    <meta name="twitter:url" content="https://www.hfocusmedical.com" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:description" content="&quot;We are your trusted healthcare partner.&quot;" />
+    <meta name="description" content="&quot;We are your trusted healthcare partner.&quot;" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0" />
+
+    <!-- Vendor -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick-theme.css">
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css">
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Rubik:300,400,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    <link rel="stylesheet" href="styles/styles.css">
+
+    <!-- Custom Styles for Modern Design -->
+    <style>
+        /* Modern Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Form Focus Effects */
+        .form-control:focus {
+            border-color: #228B22 !important;
+            box-shadow: 0 0 0 0.2rem rgba(34, 139, 34, 0.25) !important;
+            background: white !important;
+        }
+
+        /* Button Hover Effects */
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(34, 139, 34, 0.4) !important;
+        }
+
+        /* Time Slot Styling */
+        .custom-radio {
+            transition: all 0.3s ease;
+        }
+
+        .custom-radio:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(34, 139, 34, 0.2);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .page-heading {
+                font-size: 2.5rem !important;
+            }
+        }
+
+        /* Preloader Styles */
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            background-color: #fff;
+        }
+
+        .preloader .loading {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font: 14px arial;
+        }
+        /* Appointment Form Spacing */
+        .spacious-form .form-group { margin-bottom: 32px; }
+        .spacious-form .row > [class*="col"] { margin-bottom: 18px; }
+        .spacious-form label { margin-bottom: 10px; font-weight: 600; }
+        .spacious-form .form-control { min-height: 52px; padding: 16px 20px; border-radius: 12px; }
+
+        /* Time Slots Grid */
+        #all_available_slots { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+        .custom-radio { background: #ffffff; border: 2px solid #ecf0f1; border-radius: 12px; padding: 12px 16px; transition: all 0.3s ease; }
+        .custom-radio input { display: none; }
+        .custom-radio label { display: block; font-weight: 600; color: #2c3e50; cursor: pointer; }
+        .custom-radio input:checked + label { border: 2px solid #228B22; background: #eaf7ea; color: #228B22; border-radius: 10px; padding: 10px 14px; }
+    </style>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-124373507-4"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'UA-124373507-4');
+    </script>
+</head>
+
+
+
+<body class="body-loader">
+ 
+    <div class="page-loader">
+        <div class="spinner-border text-danger" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+    <section class="wrapper">
+        <header class="hero-anime">
+            <div class="navigation-wrap start-header start-style">
+                <div class="sub-nav border-bottom">
+                    <div class="container d-flex justify-content-between">
+                        <div class="d-flex justify-content-between">
+                            <a class="p-2 border-right border-left text-black" href="tel:0700 225 4365, 0700 CAL HFML"><i
+                                    class="fas fa-phone-alt mr-2"></i> Phone: 0700 225 4365, 0700 CAL HFML</a>
+                            <a class="p-2 border-right text-black" href="mailto:support@hfocusmedical.com"><i
+                                    class="fas fa-envelope mr-2"></i>
+                                Email:
+                                support@hfocusmedical.com</a>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <a class="px-3 py-2 border-right border-left text-center text-black" target="_blank"
+                                href="https://web.facebook.com/hfocusmedical/">
+                                <i class="fab fa-facebook"></i></a>
+                            <a class="px-3 py-2 border-right text-black text-center" target="_blank"
+                                href="https://x.com/h_medicare">
+                                <i class="fab fa-twitter"></i></a>
+                            <a class="px-3 py-2 border-right text-black text-center" target="_blank"
+                                href="https://www.instagram.com/havefocusgroups/">
+                                <i class="fab fa-instagram"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <nav class="navbar navbar-expand-md navbar-light">
+                    <div class="container">
+                        <a class="navbar-brand" href="index.html"><img src="logo.png" alt=""></a>
+
+                        <button class="navbar-toggler" type="button" data-toggle="collapse"
+                            data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+
+                        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                            <ul class="navbar-nav ml-auto py-4 py-md-0">
+                                <li class="nav-item px-2 px-md-0 mx-0 mx-md-3 ">
+                                    <a class="nav-link" href="index.html">Home</a>
+                                </li>
+                               
+                
+                                <li class="nav-item px-2 px-md-0 mx-0 mx-md-3  active ">
+                                    <a class="nav-link" href="about-us.html">About</a>
+                                </li>
+                                <li class="nav-item px-2 px-md-0 mx-0 mx-md-3   ">
+                                    <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button"
+                                        aria-haspopup="true" aria-expanded="false">Services</a>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item " href="corporate_wellness.html">Corporate</a>
+                                        <a class="dropdown-item " href="services.html">Individual</a>
+                                    </div>
+                                </li>
+
+
+                                <li class="nav-item px-2 px-md-0 mx-0 mx-md-3 ">
+                                    <a class="nav-link" href="location.html">Location</a>
+                                </li>
+                                <li class="nav-item px-2 px-md-0 mx-0 mx-md-3 ">
+                                    <a class="nav-link" href="contact.html">Contact</a>
+                                </li>
+                                <li class="nav-item px-2 px-md-0 mx-0 mx-md-3 ">
+                                    <a class="nav-link" href="faqs.html">Faqs</a>
+                                </li>
+                                <li class="nav-item px-2 px-md-0 mx-0 mx-md-3">
+                                    <a class="nav-link" target="_blank" href="check-result.html">Online
+                                        Report</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </header>
+
+        <div class="content-area ">
+            <div class="about-us-wrap">
+                <div class="section appointment" style="background: linear-gradient(135deg, #f8fffe 0%, #e8f5f3 100%); padding: 80px 0; position: relative; overflow: hidden;">
+                    <!-- Background Elements -->
+                    <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: linear-gradient(45deg, rgba(34, 139, 34, 0.1), rgba(46, 204, 113, 0.1)); border-radius: 50%; z-index: 1;"></div>
+                    <div style="position: absolute; bottom: -100px; left: -100px; width: 300px; height: 300px; background: linear-gradient(45deg, rgba(34, 139, 34, 0.05), rgba(46, 204, 113, 0.05)); border-radius: 50%; z-index: 1;"></div>
+                    
+                    <div class="container" style="position: relative; z-index: 2;">
+                        <div class="section-info-wrap pr-0 pr-md-5">
+
+                            <div class="section-info ">
+                                <!-- Modern Header -->
+                                <div style="text-align: center; margin-bottom: 50px;">
+                                    <div style="display: inline-block; background: linear-gradient(135deg, #228B22, #2ECC71); padding: 8px 24px; border-radius: 25px; margin-bottom: 20px;">
+                                        <span style="color: white; font-size: 14px; font-weight: 600; letter-spacing: 1px;"><i class="fas fa-calendar-alt" style="margin-right: 8px;"></i>BOOK APPOINTMENT</span>
+                                    </div>
+                                    <h2 class="page-heading" style="font-size: 3.2rem; font-weight: 700; color: #2c3e50; margin-bottom: 15px; line-height: 1.2;">Online Appointment <span style="color: #228B22;">Booking</span></h2>
+                                    <h4 class="page-sub-text" style="font-size: 1.2rem; color: #7f8c8d; font-weight: 400; margin-bottom: 0;">Hassle free booking with additional discounts.</h4>
+                                </div>
+                                
+                                <div class="row align-items-center">
+                                    <div class="col-md-5 img" style="margin-bottom: 40px;">
+                                        <div style="position: relative;">
+                                            <div style="background: linear-gradient(135deg, #228B22, #2ECC71); border-radius: 20px; padding: 20px; box-shadow: 0 20px 40px rgba(34, 139, 34, 0.2);">
+                                                <img src="images/booking.jpg" style="border-radius: 15px; width: 100%; height: auto;" />
+                                            </div>
+                                            <!-- Floating Elements -->
+                                            <div style="position: absolute; top: -20px; right: -20px; background: white; border-radius: 15px; padding: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); animation: float 3s ease-in-out infinite;">
+                                                <div style="color: #228B22; font-size: 24px;"><i class="fas fa-hospital"></i></div>
+                                            </div>
+                                            <div style="position: absolute; bottom: -15px; left: -15px; background: #228B22; border-radius: 12px; padding: 12px; box-shadow: 0 8px 25px rgba(34, 139, 34, 0.3); animation: float 3s ease-in-out infinite reverse;">
+                                                <div style="color: white; font-size: 20px;"><i class="fas fa-user-md"></i></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-12 col-md-7">
+                                        <div class="cm-content" id="first_tab" style="background: white; border-radius:
+                                            20px; padding: 40px; box-shadow: 0 25px 50px rgba(0,0,0,0.1); border: 1px solid rgba(34, 139, 34, 0.1);">
+                                            
+                                            <!-- Form Header -->
+                                            <div style="text-align: center; margin-bottom: 30px;">
+                                                <h3 style="color: #2c3e50; font-weight: 600; margin-bottom: 10px;">Schedule Your Visit</h3>
+                                                <p style="color: #7f8c8d; font-size: 0.95rem; margin-bottom: 0;">Fill in your details to book an appointment</p>
+                                            </div>
+                                            
+                                            <form method="post" name="onlineappointmentbooking"
+                                                id="onlineappointmentbooking" class="form mt-4 appointment spacious-form"
+                                                data-title="Oncologu Test query" novalidate>
+
+                                                <div class="alert alert-success" role="alert" style="display: none; border-radius: 12px; border: none; background: linear-gradient(135deg, #d4edda, #c3e6cb); color: #155724;">
+                                                    <i class="fas fa-check-circle" style="margin-right: 8px;"></i>Request sent successfully
+                                                </div>
+                                                <div class="alert alert-danger" role="alert" style="display: none; border-radius: 12px; border: none; background: linear-gradient(135deg, #f8d7da, #f5c6cb); color: #721c24;">
+                                                    <i class="fas fa-times-circle" style="margin-right: 8px;"></i>Request Failed
+                                                </div>
+
+                                                <div class="form-group" style="margin-bottom: 25px;">
+                                                    <h5 style="color:#2c3e50; font-weight:700; margin-bottom: 12px;">Booking Details</h5>
+                                                    <div class="row">
+                                                        <div class="col-sm-12 col-md-6">
+                                                        <label for="Department" style="color: #2c3e50; font-weight: 600; margin-bottom: 8px; display: block;">Department <span style="color: #e74c3c;">*</span></label>
+                                                        <div style="position: relative;">
+                                                            <select class="form-control" id="department" onchange="showDates(this)" style="border: 2px solid #ecf0f1; border-radius: 12px; padding: 15px 20px; font-size: 16px; transition: all 0.3s ease; background: #f8f9fa;">
+                                                                <option value="">Select Department</option>
+                                                                <option value="Ultrasound and Radiology">Ultrasound and Radiology</option>
+                                                                <option value="Medical Laboratory">Medical Laboratory</option>
+                                                                <option value="Health Check Plan/Consultation">Health Check Plan/Consultation</option>
+                                                            </select>
+                                                            <div style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #228B22; font-size: 18px;"><i class="fas fa-hospital"></i></div>
+                                                        </div>
+                                                        <div class="error-text" id="error_department" style="color: #e74c3c; font-size: 0.85rem; margin-top: 5px;"><span></span></div>
+                                                        </div>
+
+                                                        <div class="col-sm-12 col-md-6">
+                                                        <label for="Appointment Date" style="color: #2c3e50; font-weight: 600; margin-bottom: 8px; display: block;">Appointment Date <span style="color: #e74c3c;">*</span></label>
+                                                        <div style="position: relative;">
+                                                            <select class="form-control" id="booking_date" onchange="getDatesAccordingDep(this)" style="border: 2px solid #ecf0f1; border-radius: 12px; padding: 15px 20px; font-size: 16px; transition: all 0.3s ease; background: #f8f9fa;">
+                                                                <option value="">Select Date</option>
+                                                            </select>
+                                                            <div style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #228B22; font-size: 18px;"><i class="fas fa-calendar-alt"></i></div>
+                                                        </div>
+                                                        <div class="error-text" id="error_booking_date" style="color: #e74c3c; font-size: 0.85rem; margin-top: 5px;"><span></span></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Time Slots -->
+                                                <div class="form-group" style="margin-bottom: 25px;">
+                                                    <h5 style="color:#2c3e50; font-weight:700; margin-bottom: 12px;">Available Time Slots</h5>
+                                                    <div class="row">
+                                                        <div class="col">
+                                                        <label for="Appointment Date" style="color: #2c3e50; font-weight: 600; margin-bottom: 15px; display: block;">Available Time Slots <span style="color: #e74c3c;">*</span></label>
+                                                        </div>
+                                                        <div class="col col-sm-12" id="all_available_slots">
+                                                            <div class="custom-radio">
+                                                                <input type="radio" disabled name="booking_time" id="time_select_date"> 
+                                                                <label for="time_select_date"><span><i class="fas fa-clock" style="margin-right: 8px;"></i>Select Date First</span></label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Personal Information -->
+                                                <div class="form-group" style="margin-bottom: 25px;">
+                                                    <h5 style="color:#2c3e50; font-weight:700; margin-bottom: 12px;">Personal Information</h5>
+                                                    <div class="row">
+                                                        <div class="col-sm-12 col-md-3">
+                                                            <label style="color: #2c3e50; font-weight: 600; margin-bottom: 8px; display: block;">Title</label>
+                                                            <select id="title" class="form-control" style="border: 2px solid #ecf0f1; border-radius: 12px; padding: 15px 20px; font-size: 16px; transition: all 0.3s ease; background: #f8f9fa;">
+                                                                <option value="">Title</option>
+                                                                <option>Mr</option>
+                                                                <option>Mrs</option>
+                                                                <option>Miss</option>
+                                                                <option>M/CHOF</option>
+                                                                <option>F/CHOF</option>
+                                                                <option>Dr.</option>
+                                                            </select>
+                                                            <div class="error-text" id="error_title" style="color: #e74c3c; font-size: 0.85rem; margin-top: 5px;"><span></span></div>
+                                                        </div>
+
+                                                        <div class="col-sm-12 col-md-4">
+                                                            <label style="color: #2c3e50; font-weight: 600; margin-bottom: 8px; display: block;">First Name <span style="color: #e74c3c;">*</span></label>
+                                                            <div style="position: relative;">
+                                                                <input class="form-control" id="first_name" type="text" placeholder="Enter first name" style="border: 2px solid #ecf0f1; border-radius: 12px; padding: 15px 20px; font-size: 16px; transition: all 0.3s ease; background: #f8f9fa;">
+                                                                <div style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #228B22; font-size: 16px;"><i class="fas fa-user"></i></div>
+                                                            </div>
+                                                            <div class="error-text" id="error_first_name" style="color: #e74c3c; font-size: 0.85rem; margin-top: 5px;"><span></span></div>
+                                                        </div>
+
+                                                        <div class="col-sm-12 col-md-5">
+                                                            <label style="color: #2c3e50; font-weight: 600; margin-bottom: 8px; display: block;">Last Name <span style="color: #e74c3c;">*</span></label>
+                                                            <div style="position: relative;">
+                                                                <input class="form-control" id="last_name" type="text" placeholder="Enter last name" style="border: 2px solid #ecf0f1; border-radius: 12px; padding: 15px 20px; font-size: 16px; transition: all 0.3s ease; background: #f8f9fa;">
+                                                                <div style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #228B22; font-size: 16px;"><i class="fas fa-user"></i></div>
+                                                            </div>
+                                                            <div class="error-text" id="error_last_name" style="color: #e74c3c; font-size: 0.85rem; margin-top: 5px;"><span></span></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Gender and DOB -->
+                                                <div class="form-group" style="margin-bottom: 25px;">
+                                                    <h5 style="color:#2c3e50; font-weight:700; margin-bottom: 12px;">Gender & Date of Birth</h5>
+                                                    <div class="row">
+                                                        <div class="col-sm-12 col-md-6">
+                                                            <label style="color: #2c3e50; font-weight: 600; margin-bottom: 8px; display: block;">Gender <span style="color: #e74c3c;">*</span></label>
+                                                            <div style="position: relative;">
+                                                                <select class="form-control" id="gender" required style="border: 2px solid #ecf0f1; border-radius: 12px; padding: 15px 20px; font-size: 16px; transition: all 0.3s ease; background: #f8f9fa;">
+                                                                    <option value="">Select Gender</option>
+                                                                    <option value="male">Male</option>
+                                                                    <option value="female">Female</option>
+                                                                </select>
+                                                                <div style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #228B22; font-size: 16px;"><i class="fas fa-venus-mars"></i></div>
+                                                            </div>
+                                                            <div class="error-text" id="error_gender" style="color: #e74c3c; font-size: 0.85rem; margin-top: 5px;"><span></span></div>
+                                                        </div>
+
+                                                        <div class="col-sm-12 col-md-6">
+                                                            <label style="color: #2c3e50; font-weight: 600; margin-bottom: 8px; display: block;">Date of Birth <span style="color: #e74c3c;">*</span></label>
+                                                            <div style="position: relative;">
+                                                                <input class="form-control" id="dob" type="text" onfocus="(this.type = 'date')" placeholder="Select date of birth" style="border: 2px solid #ecf0f1; border-radius: 12px; padding: 15px 20px; font-size: 16px; transition: all 0.3s ease; background: #f8f9fa;">
+                                                                <div style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #228B22; font-size: 16px;"><i class="fas fa-birthday-cake"></i></div>
+                                                            </div>
+                                                            <div class="error-text" id="error_dob" style="color: #e74c3c; font-size: 0.85rem; margin-top: 5px;"><span></span></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Contact Information -->
+                                                <div class="form-group" style="margin-bottom: 25px;">
+                                                    <h5 style="color:#2c3e50; font-weight:700; margin-bottom: 12px;">Contact Information</h5>
+                                                    <div class="row">
+                                                        <div class="col-sm-12 col-md-6">
+                                                            <label style="color: #2c3e50; font-weight: 600; margin-bottom: 8px; display: block;">Mobile Number <span style="color: #e74c3c;">*</span></label>
+                                                            <div style="position: relative;">
+                                                                <input type="tel" id="mobile" class="form-control" placeholder="Mobile No. 08900088001" name="" pattern="[0-9]+" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\.*)\.*/g, '$1');" style="border: 2px solid #ecf0f1; border-radius: 12px; padding: 15px 20px; font-size: 16px; transition: all 0.3s ease; background: #f8f9fa;">
+                                                                <div style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #228B22; font-size: 16px;"><i class="fas fa-mobile-alt"></i></div>
+                                                            </div>
+                                                            <div class="error-text" id="error_mobile" style="color: #e74c3c; font-size: 0.85rem; margin-top: 5px;"><span></span></div>
+                                                        </div>
+
+                                                        <div class="col-sm-12 col-md-6">
+                                                            <label style="color: #2c3e50; font-weight: 600; margin-bottom: 8px; display: block;">Email Address <span style="color: #e74c3c;">*</span></label>
+                                                            <div style="position: relative;">
+                                                                <input type="email" id="email" class="form-control" placeholder="Enter email address" name="" style="border: 2px solid #ecf0f1; border-radius: 12px; padding: 15px 20px; font-size: 16px; transition: all 0.3s ease; background: #f8f9fa;">
+                                                                <div style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #228B22; font-size: 16px;"><i class="fas fa-envelope"></i></div>
+                                                            </div>
+                                                            <div class="error-text" id="error_email" style="color: #e74c3c; font-size: 0.85rem; margin-top: 5px;"><span></span></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Additional Information -->
+                                                <div class="form-group" style="margin-bottom: 30px;">
+                                                    <h5 style="color:#2c3e50; font-weight:700; margin-bottom: 12px;">Additional Information</h5>
+                                                    <div class="row">
+                                                        <div class="col-sm-12 col-md-6">
+                                                            <label style="color: #2c3e50; font-weight: 600; margin-bottom: 8px; display: block;">Weight (kg)</label>
+                                                            <div style="position: relative;">
+                                                                <input type="number" id="weight" class="form-control" placeholder="Weight In kg" name="" pattern="[0-9]+" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\.*)\.*/g, '$1');" style="border: 2px solid #ecf0f1; border-radius: 12px; padding: 15px 20px; font-size: 16px; transition: all 0.3s ease; background: #f8f9fa;">
+                                                                <div style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #228B22; font-size: 16px;"><i class="fas fa-weight"></i></div>
+                                                            </div>
+                                                            <div class="error-text" id="error_weight" style="color: #e74c3c; font-size: 0.85rem; margin-top: 5px;"><span></span></div>
+                                                        </div>
+                                                        <div class="col-sm-12 col-md-6">
+                                                            <label style="color: #2c3e50; font-weight: 600; margin-bottom: 8px; display: block;">Preferred Center <span style="color: #e74c3c;">*</span></label>
+                                                            <div style="position: relative;">
+                                                                <select id="center_name" name="center_name" class="form-control" style="border: 2px solid #ecf0f1; border-radius: 12px; padding: 15px 20px; font-size: 16px; transition: all 0.3s ease; background: #f8f9fa;">
+                                                                    <option value="">Select Preference Center</option>
+                                                                    <option value="1">H-Focus - Head Office</option>
+                                                                    <option value="11">H-Focus - Annex Office</option>
+                                                                </select>
+                                                                <div style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #228B22; font-size: 16px;"><i class="fas fa-building"></i></div>
+                                                            </div>
+                                                            <div class="error-text" id="error_center" style="color: #e74c3c; font-size: 0.85rem; margin-top: 5px;"><span></span></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Submit Button -->
+                        <div class="form-group">
+                            <button type="button" id="submit" class="btn btn-primary btn-block text-white justify-content-center p-2 py-3 mt-0" onclick="saveAppo()" style="background: linear-gradient(135deg, #228B22, #2ECC71); border: none; border-radius: 12px; padding: 18px 30px; font-size: 18px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(34, 139, 34, 0.3); position: relative; overflow: hidden;">
+                                <span style="position: relative; z-index: 2;"><i class="fas fa-calendar-check" style="margin-right: 10px;"></i>Book My Appointment</span>
+                                <div style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.5s; z-index: 1;"></div>
+                            </button>
+                        </div>
+                    </form>
+
+                                        </div>
+<!-- ✅ SUCCESS TAB -->
+<div class="cm-content" id="second_tab" style="display: none; text-align:center; padding:20px; border:1px solid #ddd; border-radius:10px; background:#fff;">
+    
+    <!-- Letterhead -->
+    <img src="logo.png" alt="H-Focus Logo" style="width:80px; margin-bottom:10px;">
+    
+    <h3 style="margin:0; font-weight:bold; color:#000;">H-FOCUS MEDICAL LABORATORY</h3>
+    <p style="margin:0; font-style:italic; font-size:13px;">...Quality and Precise Medical Lab, Services</p>
+    <p style="margin:0; font-size:12px;">havefocusgroups@gmail.com | www.hfocusmedical.com</p>
+    <p style="margin:0; font-size:11px;">
+        Head Office: Kajola Road, Baba Monday B/Stop, Ogba-Iyo, Ijoko Ogun State.<br>
+        Annex Office: Kajola GLO Road, Amazing B/Stop, Seriki, Ogun State.<br>
+        Reg: OG/MOH/HS TTD/05/904C/1123
+    </p>
+    
+    <hr style="margin:15px 0;">
+
+    <!-- Success Message -->
+    <h4 style="color: green;">Your booking request has been successfully completed!</h4>
+
+    <!-- Appointment Details -->
+    <div style="text-align:left; display:inline-block; margin-top:15px;">
+        <p><b>Booking ID:</b> <span id="success_booking_id"></span></p>
+        <p><b>Unique ID:</b> <span id="success_token"></span></p>
+        <p><b>Department:</b> <span id="success_department"></span></p>
+        <p><b>Date:</b> <span id="success_date"></span></p>
+        <p><b>Time:</b> <span id="success_time"></span></p>
+    </div>
+
+    <p class="mt-3 text-danger" style="margin-top:20px;"><b>Please check your Email for confirmation.</b></p>
+    
+    <!-- ✅ DOWNLOAD BUTTON -->
+    <button id="download_pdf" class="btn btn-success mt-3">Download Your Appointment Data Page (PDF)</button>
+</div>
+
+
+                                    </div>
+                                </div>
+                            </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="bookingLoading" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); display: none; z-index: 99999;">
+        <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:#fff; border-radius:16px; padding:24px; width:90%; max-width:420px; box-shadow:0 20px 40px rgba(0,0,0,0.2); text-align:center;">
+            <div style="font-weight:700; color:#2c3e50; font-size:18px; margin-bottom:8px;">Please wait while we accept and process your booking</div>
+            <div style="color:#7f8c8d; font-size:13px; margin-bottom:16px;">Do not refresh or close this page</div>
+            <div style="background:#e9ecef; border-radius:12px; overflow:hidden; height:12px;">
+                <div id="bookingLoadingBar" style="width:0%; height:100%; background: linear-gradient(135deg, #228B22, #2ECC71);"></div>
+            </div>
+            <div id="bookingLoadingPercent" style="margin-top:10px; font-weight:600; color:#228B22;">0%</div>
+        </div>
+    </div>
+
+        <footer>
+            <div class="curve"></div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6 col-lg-3 mobile-div">
+                        <img src="logo.png" alt="brand icon" class="mb-3" style="max-height: 80px; width: auto;">
+                        <p class="mb-1">One of the leading Medical Laboratory Center <br> in Nigeria.</p>
+                        <p class="mb-1">RC Number: 1397301</p>
+                        <p></p>
+                        <div class="mb-3">
+                            <!-- <a class="px-2 py-2 ft-20 text-black text-center play-store-btn" target="_blank"
+                        href="https://apps.apple.com/app/id1451279965">
+                        <i class="fab fa-apple"></i>
+                    </a>
+                    <a class="px-2 py-2 ft-20 text-black text-center app-store-btn" target="_blank"
+                        href="#">
+                        <i class="fab fa-google-play"></i>
+                    </a> -->
+                        </div>
+                        <!-- <h4 class="sub-heading">Newsletter</h4>
+                <form action="">
+                    <div class="input-group mb-3">
+                        <input type="email" class="form-control" placeholder="Email Address" aria-label="Username" >
+                        <div class="input-group-append">
+                            <span class="input-group-text" ><i class="fas fa-paper-plane"></i></span>
+                        </div>
+                    </div>
+                </form> -->
+                    </div>
+                    <div class="col-md-6 col-lg-3 mobile-hide">
+                        <h4 class="sub-heading">Quick Links</h4>
+                        <ul>
+                            <li><a target="_blank" href="about-us.html" class="text-decoration-none">About Us</a></li>
+                            <li><a target="_blank" href="services.html" class="text-decoration-none">Services</a></li>
+
+                            <li><a target="_blank" href="index.html#pricing" class="text-decoration-none">Pricing</a>
+                            </li>
+                            <li><a target="_blank" href="contact.html" class="text-decoration-none">Contact Us</a></li>
+                            <li><a target="_blank" href="faqs.html" class="text-decoration-none">FAQ's</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6 col-lg-3 mobile-hide">
+                        <h4 class="sub-heading">Centers</h4>
+                        <ul>
+                            <li><a target="_blank" href="location.html" class="text-decoration-none">OGUN STATE - SANGO</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6 col-lg-3 social-media">
+                        <h4 class="sub-heading mobile-hide">Get Connected</h4>
+             
+                        <p>
+                            <a class="pr-2 py-2 ft-20 text-center text-black" target="_blank"
+                                href="https://web.facebook.com/hfocusmedical/">
+                                <i class="fab fa-facebook"></i>
+                            </a>
+                            <a class="px-2 py-2 ft-20 text-black text-center" target="_blank"
+                                href="https://x.com/h_medicare">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            <a class="px-2 py-2 ft-20 text-black text-center" target="_blank"
+                                href="https://www.instagram.com/havefocusgroups/">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                        </p>
+                        <p class="mb-1"><a href="tel:0700 225 4365, 0700 CAL HFML" class="text-dark ft-14">0700 225 4365, 0700 CAL HFML</a>
+                        </p>
+                        <!-- <ul>
+                    <li><span class="text-decoration-none">Monday: 8AM - 6PM</span></li>
+                    <li><span class="text-decoration-none">Tuesday: 8AM - 6PM</span></li>
+                    <li><span class="text-decoration-none">Wednesday: 8AM - 6PM</span></li>
+                    <li><span class="text-decoration-none">Thursday: 8AM - 6PM</span></li>
+                    <li><span class="text-decoration-none">Friday: 8AM - 6PM</span></li>
+                    <li><span class="text-decoration-none">Saturday: 8AM - 4PM</span></li>
+                    <li><span class="text-decoration-none">Sunday: <span
+                                class="text-uppercase text-primary">CLOSED</span></span></li>
+                </ul> -->
+                    </div>
+                </div>
+            </div>
+            <div class="sub-footer text-center bg-primary p-3">
+                <span class="text-white">Copyright © 2025. H-Focus Medical Laboratory - All Rights Reserved.</span>
+            </div>
+        </footer>
+    </section>
+
+    <!-- Boostrap -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
+
+    <script src="scripts/external/slick.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/latest/TweenMax.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.27.0/moment.min.js"
+        crossorigin="anonymous"></script>
+
+
+    <!-- Custom scripts -->
+    <script src="scripts/validation/jquery.validate.js"></script>
+    <script src="scripts/common.js"></script>
+    <script src="scripts/counter.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    
+    
+    <script>
+function getDatesAccordingDep(sel) {
+    var depvalue = $('select#department option:selected').val();
+
+    function generateSlots(date, department) {
+        return ['09:00 AM','10:00 AM','11:00 AM','12:00 PM','01:00 PM','02:00 PM','03:00 PM','04:00 PM'];
+    }
+    var slots = generateSlots(sel.value, depvalue);
+    var slotAppneder = '';
+    if (slots.length > 0) {
+        for (var v = 0; v < slots.length; v++) {
+            slotAppneder += `
+              <div class="custom-radio">
+                <input type="radio" name="booking_time" id="time${v}" value="${slots[v]}"> 
+                <label for="time${v}"><span>${slots[v]}<br> Available</span></label>
+              </div>`;
+        }
+    } else {
+        slotAppneder = `
+          <div class="custom-radio">
+            <input type="radio" disabled name="booking_time" id="time1"> 
+            <label for="time1"> No Slots Available </label>
+          </div>`;
+    }
+    $("#all_available_slots").html(slotAppneder);
+}
+
+
+
+        function saveAppo(sel) {
+    var dep = $('select#department option:selected').val();
+    var booking_date = $('#booking_date').val();
+    var title = $('select#title option:selected').val();
+    var gender = $('select#gender option:selected').val();
+    var first_name = $("#first_name").val();
+    var last_name = $("#last_name").val();
+    var dob = $("#dob").val();
+    var mobile = $("#mobile").val();
+    var email = $("#email").val();
+    var pcenter = $("select#center_name option:selected").val();
+
+    var slots = $('input[name=booking_time]:checked', '#onlineappointmentbooking').val()
+    var weight = $('#weight').val();
+    var errorReturns = false;
+
+    // Reset errors
+    $("#error_department").html('');
+    $("#error_booking_date").html('');
+    $("#error_title").html('');
+    $("#error_gender").html('');
+    $("#error_first_name").html('');
+    $("#error_last_name").html('');
+    $("#error_dob").html('');
+    $("#error_mobile").html('');
+    $("#error_email").html('');
+    $("#error_weight").html('');
+    $("#error_center").html('');
+
+    // Validation checks
+    if (weight >= 120) {
+        $("#error_weight").html("You are overweighted so we can't allow appointment booking.");
+        errorReturns = true;
+    }
+    if (dep == "") { $("#error_department").html('Select Department'); errorReturns = true; }
+    if (booking_date == "") { $("#error_booking_date").html('Select Appointment Date'); errorReturns = true; }
+    if (slots == undefined) { $("#error_booking_date").html('Select Appointment Slot'); errorReturns = true; }
+    if (title == "") { $("#error_title").html('Select Title'); errorReturns = true; }
+    if (gender == "") { $("#error_gender").html('Select Gender'); errorReturns = true; }
+    if (first_name == "") { $("#error_first_name").html('Enter First name'); errorReturns = true; }
+    if (last_name == "") { $("#error_last_name").html('Enter Last name'); errorReturns = true; }
+    if (dob == "") { $("#error_dob").html('Select Dob'); errorReturns = true; }
+    if (mobile == "") { $("#error_mobile").html('Enter Mobile'); errorReturns = true; }
+    if (mobile != "" && (mobile.length <= 10 || mobile.length > 11)) {
+        $("#error_mobile").html('Enter Valid Mobile'); errorReturns = true;
+    }
+    if (email == "") { $("#error_email").html('Enter Email'); errorReturns = true; }
+    if (!validateEmail(email)) { $("#error_email").html('Enter valid Email'); errorReturns = true; }
+    if (weight == "") { $("#error_weight").html('Enter valid Weight in kg'); errorReturns = true; }
+    if (pcenter == "") { $("#error_center").html('Select Center'); errorReturns = true; }
+
+    if (!errorReturns) {
+        $('#submit').hide();
+        showBookingLoading();
+
+        $.ajax({
+            type: "POST",
+            dataType: 'JSON',
+            url: 'https://hfocusmedical.vercel.app/api/appointments',
+            data: JSON.stringify({
+                department: dep,
+                appointment_date: booking_date,
+                title: title,
+                first_name: first_name,
+                last_name: last_name,
+                gender: gender,
+                dob: dob,
+                mobile_no: mobile,
+                email: email,
+                appointment_time: slots,
+                weight: weight,
+                center_name: pcenter
+            }),
+            contentType: 'application/json',
+            success: function (resp) {
+                console.log(resp);
+                if (resp.status == 1) {
+                    // Use the booking ID from server response
+                    var bookingId = resp.data.booking_id || "N/A";
+
+                    // ✅ Fill success details on UI
+                    $("#success_booking_id").html(bookingId);
+                    $("#success_token").html(resp.data.unique_id || "Not Generated");
+                    $("#success_department").html(dep);
+                    $("#success_date").html(booking_date);
+                    $("#success_time").html(slots);
+
+                    // Switch to success tab
+                    $("#first_tab").hide();
+                    $("#second_tab").show();
+                    hideBookingLoading(true);
+
+                    // ✅ PDF Download
+                    $("#download_pdf").off("click").on("click", function () {
+                        const { jsPDF } = window.jspdf;
+                        const doc = new jsPDF({
+                            orientation: 'portrait',
+                            unit: 'mm',
+                            format: 'a4',
+                            compress: true,
+                            precision: 2
+                        });
+
+                        // --- Background and Border ---
+                        doc.setFillColor(248, 249, 250); // Light gray background
+                        doc.rect(0, 0, 210, 297, 'F'); // Fill entire page
+                        
+                        // Header background - Changed to GREEN (brand color)
+                        doc.setFillColor(34, 139, 34); // Green header
+                        doc.rect(0, 0, 210, 100, 'F');
+
+                        // --- Circular Logo ---
+                        // Create circular clipping path for logo
+                        doc.circle(105, 35, 18); // Circle at center, radius 18
+                        doc.clip();
+                        doc.addImage("/logo.png", "PNG", 87, 17, 36, 36); // Square logo that will be clipped to circle
+                        doc.discardPath(); // Reset clipping
+                        
+                        // Logo border circle
+                        doc.setDrawColor(255, 255, 255);
+                        doc.setLineWidth(2);
+                        doc.circle(105, 35, 18, 'S');
+
+                        // --- Header Info ---
+                        doc.setTextColor(255, 255, 255); // White text
+                        doc.setFontSize(16);
+                        doc.setFont(undefined, 'bold');
+                        doc.text("H-FOCUS MEDICAL LABORATORY", 105, 62, null, null, "center");
+
+                        doc.setFontSize(11);
+                        doc.setFont(undefined, 'normal');
+                        doc.text("Quality and Precise Medical Lab Services", 105, 70, null, null, "center");
+                        doc.text("havefocusgroups@gmail.com | www.hfocusmedical.com", 105, 77, null, null, "center");
+
+                        doc.setFontSize(9);
+                        doc.text("Head Office: Kajola Road, Baba Monday B/Stop, Ogba-Iyo, Ijoko Ogun State.", 105, 84, null, null, "center");
+                        doc.text("Annex Office: Kajola GLO Road, Amazing B/Stop, Seriki, Ogun State.", 105, 91, null, null, "center");
+
+                        // --- Main Content Area (Adjusted position to avoid overlap) ---
+                        doc.setTextColor(0, 0, 0); // Black text
+                        doc.setFillColor(255, 255, 255); // White background
+                        doc.roundedRect(15, 110, 180, 140, 5, 5, 'F'); // Rounded rectangle - adjusted height and position
+                        doc.setDrawColor(200, 200, 200);
+                        doc.setLineWidth(0.5);
+                        doc.roundedRect(15, 110, 180, 140, 5, 5, 'S'); // Border
+
+                        // --- Title ---
+                        doc.setFillColor(34, 139, 34); // Green title bar
+                        doc.roundedRect(25, 120, 160, 18, 3, 3, 'F');
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(13);
+                        doc.setFont(undefined, 'bold');
+                        doc.text("APPOINTMENT BOOKING CONFIRMATION", 105, 132, null, null, "center");
+
+                        // --- Patient Details (Better spacing) ---
+                        doc.setTextColor(0, 0, 0);
+                        doc.setFontSize(11);
+                        doc.setFont(undefined, 'bold');
+                        doc.text("Patient Information:", 30, 150);
+                        
+                        doc.setFont(undefined, 'normal');
+                        doc.setFontSize(9);
+                        
+                        // Left column - Better spacing
+                        doc.text("Booking ID:", 30, 162);
+                        doc.text(bookingId, 75, 162);
+                        
+                        doc.text("Unique ID:", 30, 170);
+                        doc.setFont(undefined, 'bold');
+                        doc.setTextColor(34, 139, 34);
+                        doc.text((resp.data.unique_id || "Not Generated"), 75, 170);
+                        
+                        doc.setTextColor(0, 0, 0);
+                        doc.setFont(undefined, 'normal');
+                        doc.text("Patient Name:", 30, 178);
+                        doc.text(first_name + " " + last_name, 75, 178);
+                        
+                        doc.text("Gender:", 30, 186);
+                        doc.text(gender, 75, 186);
+                        
+                        doc.text("Date of Birth:", 30, 194);
+                        doc.text(dob, 75, 194);
+
+                        // Right column - Better spacing
+                        doc.text("Department:", 110, 162);
+                        doc.text(dep, 155, 162);
+                        
+                        doc.text("Appointment Date:", 110, 170);
+                        doc.text(booking_date, 155, 170);
+                        
+                        doc.text("Appointment Time:", 110, 178);
+                        doc.text(slots, 155, 178);
+                        
+                        doc.text("Email:", 110, 186);
+                        doc.text(email, 155, 186);
+                        
+                        doc.text("Mobile:", 110, 194);
+                        doc.text(mobile, 155, 194);
+
+                        // --- Important Notice (Adjusted position) ---
+                        doc.setFillColor(255, 243, 205); // Light yellow background
+                        doc.roundedRect(25, 210, 160, 25, 3, 3, 'F');
+                        doc.setDrawColor(255, 193, 7);
+                        doc.roundedRect(25, 210, 160, 25, 3, 3, 'S');
+                        
+                        doc.setFontSize(9);
+                        doc.setFont(undefined, 'bold');
+                        doc.setTextColor(133, 77, 14);
+                        doc.text("IMPORTANT NOTICE:", 30, 220);
+                        
+                        doc.setFont(undefined, 'normal');
+                        doc.setFontSize(8);
+                        doc.text("Please bring this confirmation page along on the day of your", 30, 227);
+                        doc.text("appointment for verification and faster check-in process.", 30, 232);
+
+                        // --- QR Code for Authenticity ---
+                        const qrData = `H-Focus Medical Lab\nBooking ID: ${bookingId}\nUnique ID: ${resp.data.unique_id || 'Not Generated'}\nPatient: ${first_name} ${last_name}\nDepartment: ${dep}\nDate: ${booking_date}\nTime: ${slots}\nAuth: HFML-${Date.now()}`;
+                        
+                        // QR Code background
+                        doc.setFillColor(255, 255, 255);
+                        doc.roundedRect(25, 245, 40, 40, 2, 2, 'F');
+                        doc.setDrawColor(34, 139, 34);
+                        doc.setLineWidth(1);
+                        doc.roundedRect(25, 245, 40, 40, 2, 2, 'S');
+                        
+                        // QR Code placeholder (since we can't generate actual QR in jsPDF without library)
+                        doc.setFillColor(0, 0, 0);
+                        // Create a simple pattern to represent QR code
+                        for(let i = 0; i < 8; i++) {
+                            for(let j = 0; j < 8; j++) {
+                                if((i + j) % 2 === 0) {
+                                    doc.rect(27 + i * 4.5, 247 + j * 4.5, 4, 4, 'F');
+                                }
+                            }
+                        }
+                        
+                        // QR Code label
+                        doc.setTextColor(0, 0, 0);
+                        doc.setFontSize(8);
+                        doc.setFont(undefined, 'bold');
+                        doc.text("SCAN FOR", 75, 255);
+                        doc.text("AUTHENTICITY", 75, 262);
+                        doc.setFont(undefined, 'normal');
+                        doc.setFontSize(7);
+                        doc.text("Verification Code:", 75, 270);
+                        doc.text(`HFML-${Date.now().toString().slice(-6)}`, 75, 276);
+
+                        // --- Footer (Adjusted position) ---
+                        doc.setTextColor(100, 100, 100);
+                        doc.setFontSize(8);
+                        doc.text("Registration: OG/MOH/HS TTD/05/904C/1123", 105, 290, null, null, "center");
+                        doc.text("Generated on: " + new Date().toLocaleString(), 105, 295, null, null, "center");
+
+                        // Save PDF
+                        doc.save("H-Focus_Appointment_" + (resp.data.unique_id || "NoID") + ".pdf");
+                    });
+
+                } else {
+                    $('#submit').show();
+                    hideBookingLoading(false);
+                }
+            }
+            , error: function(){
+                $('#submit').show();
+                hideBookingLoading(false);
+            }
+        });
+    }
+}
+
+
+
+function showDates() {
+  const department = $("#department").val();
+  if (!department) {
+    $("#booking_date").prop("disabled", true).html('<option value="">Select Department First</option>');
+    return;
+  }
+  const today = new Date();
+  const dates = [];
+  for (let i = 0; i < 14; i++) {
+    const d = new Date();
+    d.setDate(today.getDate() + i);
+    if (d.getDay() === 0) continue;
+    const day = ("0" + d.getDate()).slice(-2);
+    const month = ("0" + (d.getMonth() + 1)).slice(-2);
+    dates.push(`${d.getFullYear()}-${month}-${day}`);
+  }
+  if (dates.length > 0) {
+    let options = '<option value="">Select Date</option>';
+    dates.forEach(date => { options += `<option value="${date}">${date}</option>`; });
+    $("#booking_date").prop("disabled", false).html(options);
+  } else {
+    $("#booking_date").prop("disabled", true).html('<option value="">No Dates Available</option>');
+  }
+  $("#all_available_slots").html(`
+    <div class="custom-radio">
+      <input type="radio" disabled="disabled" name="booking_time" id="time1"> 
+      <label for="time1"> Select Date </label>
+    </div>
+  `);
+}
+
+        function dateConverterOfFormate(now) {
+            // var now = new Date();
+            var day = ("0" + now.getDate()).slice(-2);
+            var month = ("0" + (now.getMonth() + 1)).slice(-2);
+            var today = now.getFullYear() + "-" + (month) + "-" + (day);
+            return today;
+        }
+        function dateConverterOfFormate1(now) {
+            // var now = new Date();
+            var day = ("0" + now.getDate()).slice(-2);
+            var month = ("0" + (now.getMonth() + 1)).slice(-2);
+            var today = (day) + "-" + (month) + "-" + now.getFullYear();
+            return today;
+        }
+        $(document).ready(function () {
+            $("#mobile").keydown(function (event) {
+
+            });
+        });
+        function validateEmail($email) {
+            var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
+            return emailReg.test($email);
+        }
+        var bookingLoadingTimer = null;
+        var bookingLoadingValue = 0;
+        function showBookingLoading(){
+            bookingLoadingValue = 0;
+            $("#bookingLoading").fadeIn(150);
+            updateBookingLoading(0);
+            bookingLoadingTimer = setInterval(function(){
+                if(bookingLoadingValue < 90){
+                    bookingLoadingValue += Math.max(1, Math.floor(Math.random()*4));
+                    if(bookingLoadingValue > 90) bookingLoadingValue = 90;
+                    updateBookingLoading(bookingLoadingValue);
+                }
+            }, 200);
+        }
+        function updateBookingLoading(v){
+            $("#bookingLoadingBar").css("width", v+"%");
+            $("#bookingLoadingPercent").text(v+"%");
+        }
+        function hideBookingLoading(final){
+            if(final){ updateBookingLoading(100); }
+            if(bookingLoadingTimer){ clearInterval(bookingLoadingTimer); bookingLoadingTimer = null; }
+            setTimeout(function(){ $("#bookingLoading").fadeOut(200); }, final ? 300 : 0);
+        }
+    </script>
+    
+</body>
+
+</html>

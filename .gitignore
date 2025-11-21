@@ -49,19 +49,8 @@ jspm_packages/
 # IDE files
 .vscode/
 
-# Backend-only repository: exclude frontend assets
-*.html
-images/
-scripts/
-styles/
-*.css
-logo.png
-pdf/
-results/
-.idea/
-*.swp
-*.swo
-*~
+
+
 
 # OS generated files
 .DS_Store
