@@ -364,6 +364,14 @@ module.exports = async (req, res) => {
     }
 
     // APPOINTMENTS
+    if (segments[0] === 'appointments' && segments.length === 1 && req.method === 'GET') {
+      const authHeader = req.headers['authorization'] || '';
+      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+      try { jwt.verify(token, process.env.JWT_SECRET); } catch { return res.status(401).json({ status: 0, message: 'Unauthorized' }); }
+      await connect();
+      const list = await Appointment.find().sort({ created_at: -1 });
+      return res.status(200).json({ status: 1, data: list });
+    }
     if (segments[0] === 'appointments' && segments.length === 1) {
       if (req.method !== 'POST') return res.status(405).json({ status: 0, message: 'Method Not Allowed' });
       await connect();
@@ -404,6 +412,16 @@ module.exports = async (req, res) => {
       return res.status(200).json({ status: 1, message: 'Appointment saved successfully', data: newAppointment });
     }
 
+    if (segments[0] === 'appointments' && segments[1] && req.method === 'DELETE') {
+      const authHeader = req.headers['authorization'] || '';
+      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+      try { jwt.verify(token, process.env.JWT_SECRET); } catch { return res.status(401).json({ status: 0, message: 'Unauthorized' }); }
+      await connect();
+      const id = segments[1];
+      const appointment = await Appointment.findOneAndDelete({ unique_id: id });
+      if (!appointment) return res.status(404).json({ status: 0, message: 'Appointment not found' });
+      return res.status(200).json({ status: 1, message: 'Appointment deleted successfully' });
+    }
     if (segments[0] === 'appointments' && segments[1]) {
       if (req.method !== 'GET') return res.status(405).json({ status: 0, message: 'Method Not Allowed' });
       await connect();
@@ -411,6 +429,41 @@ module.exports = async (req, res) => {
       const appointment = await Appointment.findOne({ unique_id: id });
       if (!appointment) return res.status(200).json({ status: 0, message: 'No record found' });
       return res.status(200).json({ status: 1, data: appointment });
+    }
+
+    if (segments[0] === 'appointments' && segments[1] === 'upload' && segments[2]) {
+      if (req.method !== 'POST') return res.status(405).json({ status: 0, message: 'Method Not Allowed' });
+      const authHeader = req.headers['authorization'] || '';
+      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+      try { jwt.verify(token, process.env.JWT_SECRET); } catch { return res.status(401).json({ status: 0, message: 'Unauthorized' }); }
+      await connect();
+      const uniqueId = segments[2];
+      const busboy = Busboy({ headers: req.headers });
+      let uploadUrl = null;
+      busboy.on('file', (name, file, info) => {
+        const chunks = [];
+        file.on('data', data => chunks.push(data));
+        file.on('end', async () => {
+          try {
+            const buffer = Buffer.concat(chunks);
+            const result = await new Promise((resolve, reject) => {
+              const stream = cloudinary.uploader.upload_stream({ resource_type: 'auto', folder: 'hfocus-results', use_filename: true }, (err, resu) => err ? reject(err) : resolve(resu));
+              stream.end(buffer);
+            });
+            uploadUrl = result.secure_url;
+          } catch (e) { uploadUrl = null; }
+        });
+      });
+      busboy.on('finish', async () => {
+        const appo = await Appointment.findOne({ unique_id: uniqueId });
+        if (!appo) return res.status(404).json({ status: 0, message: 'Appointment not found' });
+        appo.result_ready = true;
+        appo.result_file = uploadUrl;
+        await appo.save();
+        return res.status(200).json({ status: 1, message: 'Result uploaded', url: uploadUrl });
+      });
+      req.pipe(busboy);
+      return;
     }
 
     // PUBLIC APPOINTMENTS
@@ -442,12 +495,18 @@ module.exports = async (req, res) => {
       if (req.method !== 'POST') return res.status(405).json({ status: 0, message: 'Method Not Allowed' });
       await connect();
       const { username, password } = jsonBody(req);
+      const envUser = (process.env.SUPERADMIN_USER || '').trim();
+      const envPass = (process.env.SUPERADMIN_PASS || '').trim();
+      if (username && password && username.trim() === envUser && password.trim() === envPass) {
+        const token = jwt.sign({ sub: 'env-superadmin', role: 'superadmin', username: envUser }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        return res.status(200).json({ status: 1, token, role: 'superadmin' });
+      }
       const admin = await Admin.findOne({ username });
       if (!admin) return res.status(401).json({ status: 0, message: 'Invalid credentials' });
       const ok = await bcrypt.compare(password, admin.password);
       if (!ok) return res.status(401).json({ status: 0, message: 'Invalid credentials' });
-      const token = jwt.sign({ sub: admin._id, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '7d' });
-      return res.status(200).json({ status: 1, token });
+      const token = jwt.sign({ sub: admin._id, role: 'admin', username: admin.username }, process.env.JWT_SECRET, { expiresIn: '7d' });
+      return res.status(200).json({ status: 1, token, role: 'admin' });
     }
     if (segments[0] === 'auth' && segments[1] === 'register') {
       if (req.method !== 'POST') return res.status(405).json({ status: 0, message: 'Method Not Allowed' });
