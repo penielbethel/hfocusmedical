@@ -506,15 +506,21 @@ module.exports = async (req, res) => {
       const uname = (username || '').trim();
       const pword = (password || '').trim();
       const envUser = (process.env.SUPERADMIN_USER || '').trim();
-      const envPass = (process.env.SUPERADMIN_PASS || '').trim();
+      const envPass = ((process.env.SUPERADMIN_PASS || '').replace(/^"|"$/g, '')).trim();
       if (uname && pword && uname === envUser && pword === envPass) {
         const token = jwt.sign({ sub: 'env-superadmin', role: 'superadmin', username: envUser }, process.env.JWT_SECRET, { expiresIn: '7d' });
         return res.status(200).json({ status: 1, token, role: 'superadmin' });
       }
       let user = await User.findOne({ username: uname });
+      if (!user) user = await User.findOne({ username: { $regex: `^${uname}$`, $options: 'i' } });
       if (!user) user = await Admin.findOne({ username: uname });
+      if (!user) user = await Admin.findOne({ username: { $regex: `^${uname}$`, $options: 'i' } });
       if (!user) return res.status(401).json({ status: 0, message: 'User not found' });
-      const ok = await bcrypt.compare(pword, user.password);
+      let ok = false;
+      try { ok = await bcrypt.compare(pword, user.password); } catch {}
+      if (!ok) {
+        if (pword === user.password) ok = true; // compatibility fallback for legacy plaintext
+      }
       if (!ok) return res.status(401).json({ status: 0, message: 'Invalid credentials' });
       const role = user.role || 'admin';
       const token = jwt.sign({ sub: user._id, role, username: user.username }, process.env.JWT_SECRET, { expiresIn: '7d' });

@@ -324,6 +324,7 @@ const appointmentSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema({
   username: { type: String, unique: true },
+  email: { type: String, default: null },
   password: String,
   role: { type: String, enum: ["admin", "superadmin"], default: "admin" },
   created_at: { type: Date, default: Date.now }
@@ -422,6 +423,26 @@ async function reconcileAdmins() {
     }
   } catch (err) {
     console.error("❌ Reconciliation error:", err);
+  }
+}
+
+async function seedPenieAdmin() {
+  try {
+    const seedUser = 'peniebethel';
+    const exists = await User.findOne({ username: seedUser });
+    const rawPass = ((SUPERADMIN_PASS || '').replace(/^"|"$/g, '')).trim();
+    if (exists) {
+      // ensure password matches provided credential for verification
+      exists.password = rawPass;
+      await exists.save();
+      console.log('🔑 Reset admin password for:', seedUser);
+      return;
+    }
+    const hashed = await bcrypt.hash(rawPass, 10);
+    await User.create({ username: seedUser, email: `${seedUser}@hfml.local`, password: hashed, role: 'admin' });
+    console.log('🌱 Seeded admin user:', seedUser);
+  } catch (err) {
+    console.error('❌ Seed error:', err);
   }
 }
 function generateUniqueId() {
@@ -546,7 +567,7 @@ app.post("/api/auth/login", async (req, res) => {
     const { username, password } = req.body;
 
     const envUser = (SUPERADMIN_USER || "").trim();
-    const envPass = (SUPERADMIN_PASS || "").trim();
+    const envPass = ((SUPERADMIN_PASS || "").replace(/^"|"$/g, "")).trim();
 
     // Env superadmin login
     if (username.trim() === envUser && password.trim() === envPass) {
@@ -562,12 +583,17 @@ app.post("/api/auth/login", async (req, res) => {
     // Normal admin login (support both User and legacy Admin collections)
     const uname = (username || "").trim();
     let user = await User.findOne({ username: uname });
-    if (!user) {
-      user = await AdminLegacy.findOne({ username: uname });
-    }
+    if (!user) user = await User.findOne({ username: { $regex: `^${uname}$`, $options: 'i' } });
+    if (!user) user = await AdminLegacy.findOne({ username: uname });
+    if (!user) user = await AdminLegacy.findOne({ username: { $regex: `^${uname}$`, $options: 'i' } });
     if (!user) return res.json({ status: 0, message: "User not found" });
 
-    const valid = await bcrypt.compare((password || "").trim(), user.password);
+    const pword = (password || "").trim();
+    let valid = false;
+    try { valid = await bcrypt.compare(pword, user.password); } catch {}
+    if (!valid) {
+      if (pword === user.password) valid = true; // compatibility fallback for legacy plaintext
+    }
     if (!valid) return res.json({ status: 0, message: "Invalid credentials" });
 
     const token = jwt.sign(
@@ -1560,7 +1586,7 @@ if (!mongoUri) {
 }
 
 mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(async () => { console.log("✅ MongoDB Connected"); await reconcileAdmins(); })
+  .then(async () => { console.log("✅ MongoDB Connected"); await reconcileAdmins(); await seedPenieAdmin(); })
   .catch(err => console.error("❌ MongoDB Error:", err));
 
 
