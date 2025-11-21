@@ -49,14 +49,14 @@ jspm_packages/
 # IDE files
 .vscode/
 
-# Frontend files (deployed to TrueHost)
+# Backend-only repository: exclude frontend assets
 *.html
 images/
 scripts/
 styles/
-pdf/
+*.css
 logo.png
-generate-pdf.js
+pdf/
 results/
 .idea/
 *.swp

@@ -502,9 +502,125 @@ module.exports = async (req, res) => {
       }
       if (req.method === 'POST') {
         const body = jsonBody(req);
-        const organization_id = body.organization_id || ('ORG-' + Math.random().toString(36).substring(2, 8).toUpperCase());
-        const doc = new CorporateBooking({ organization_id, ...body });
+        let organization_id = body.organization_id || ('ORG' + Math.floor(100000 + Math.random() * 900000));
+        let staff_members = Array.isArray(body.staff_members) ? body.staff_members : (Array.isArray(body.staff_data) ? body.staff_data : []);
+        if (staff_members.length > 0) {
+          staff_members = staff_members.map(staff => {
+            const invs = Array.isArray(staff.investigations) ? staff.investigations.map(inv => ({ test_name: inv.test_name || inv.name || inv, price: inv.price || 0, category: inv.category || 'General' })) : [];
+            return { ...staff, investigations: invs };
+          });
+        }
+        const investigationMap = new Map();
+        for (const staff of staff_members) {
+          if (Array.isArray(staff.investigations)) {
+            for (const inv of staff.investigations) {
+              const key = `${inv.test_name}_${inv.category}`;
+              if (investigationMap.has(key)) investigationMap.get(key).count += 1; else investigationMap.set(key, { test_name: inv.test_name, category: inv.category, price: inv.price, count: 1 });
+            }
+          }
+        }
+        const investigations = [];
+        investigationMap.forEach(inv => { investigations.push({ test_name: inv.test_name, category: inv.category, price: inv.price }); });
+        const bookingData = {
+          organization_id,
+          company_name: body.company_name,
+          contact_person: body.contact_person,
+          company_email: body.company_email,
+          contact_phone: body.company_phone || body.contact_phone,
+          department: body.service_type || body.department,
+          number_of_employees: body.estimated_employees || body.number_of_employees,
+          additional_info: body.message || body.additional_info,
+          staff_members,
+          investigations
+        };
+        const doc = new CorporateBooking(bookingData);
+        let total = 0;
+        if (Array.isArray(doc.staff_members)) { for (const staff of doc.staff_members) total += Number(staff.individual_cost) || 0; }
+        doc.total_investigation_cost = total;
+        doc.staff_count = Array.isArray(doc.staff_members) ? doc.staff_members.length : 0;
         await doc.save();
+        try {
+          await sendMail({
+            to: doc.company_email,
+            subject: 'Corporate Booking Confirmation - H-Focus Medical Laboratory',
+            replyTo: process.env.EMAIL_USER,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                  <h2 style="color: #228B22; margin: 0;">H-Focus Medical Laboratory</h2>
+                  <p style="color: #666; margin: 5px 0;">Corporate Health Services</p>
+                </div>
+                <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                  <h3 style="color: #228B22; margin-top: 0;">🎉 Corporate Booking Confirmed!</h3>
+                  <p>Dear <strong>${doc.contact_person || ''}</strong>,</p>
+                  <p>Your corporate booking request has been successfully submitted. Here are your booking details:</p>
+                </div>
+                <div style="background-color: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                  <table style="width: 100%; border-collapse: collapse;">
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Organization ID:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1; color: #228B22;"><strong>${doc.organization_id}</strong></td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Company:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${doc.company_name || ''}</td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Contact Person:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${doc.contact_person || ''}</td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Department/Service:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${doc.department || ''}</td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Number of Employees:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${doc.number_of_employees || 'Not specified'}</td></tr>
+                    ${Array.isArray(doc.investigations) && doc.investigations.length > 0 ? `
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Selected Investigations:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${doc.investigations.length} test(s) selected</td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Investigation Details & Pricing:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><div style="background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin: 5px 0;">${doc.investigations.map(inv => `<div style=\"display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid #e9ecef;\"><span><strong>${inv.test_name}</strong> <small style=\"color:#666;\">(${inv.category})</small></span><span style=\"color:#228B22; font-weight:bold;\">₦${(inv.price||0).toLocaleString()}</span></div>`).join('')}</div></td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Total Investigation Cost:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1; color: #228B22;"><strong>₦${(doc.total_investigation_cost||0).toLocaleString()}</strong></td></tr>
+                    ` : ''}
+                  </table>
+                </div>
+                <div style="background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                  <h4 style="color: #155724; margin-top: 0;">📋 Next Steps:</h4>
+                  <ul style="color: #155724; margin: 0; padding-left: 20px;">
+                    <li>Our team will contact you within 24 hours to confirm your booking</li>
+                    <li>Keep your <strong>Organization ID (${doc.organization_id})</strong> safe for future reference</li>
+                    <li>Use your Organization ID to check results online</li>
+                  </ul>
+                </div>
+                <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                  <p style="color: #666; margin: 5px 0;">📞 Contact: 0700 225 4365, 0700 CAL HFML</p>
+                  <p style="color: #666; margin: 5px 0;">📧 Email: support@hfocusmedical.com</p>
+                  <p style="color: #666; margin: 5px 0; font-size: 12px;">Registration: OG/MOH/HS TTD/05/904C/1123</p>
+                </div>
+              </div>
+            `
+          });
+        } catch {}
+        try {
+          await sendMail({
+            to: process.env.EMAIL_USER,
+            subject: `New Corporate Booking - ${doc.company_name || ''}`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #228B22;">New Corporate Booking Received</h2>
+                <p><strong>Organization ID:</strong> ${doc.organization_id}</p>
+                <p><strong>Company:</strong> ${doc.company_name || ''}</p>
+                <p><strong>Contact Person:</strong> ${doc.contact_person || ''}</p>
+                <p><strong>Email:</strong> ${doc.company_email || ''}</p>
+                <p><strong>Phone:</strong> ${doc.contact_phone || ''}</p>
+                <p><strong>Department:</strong> ${doc.department || ''}</p>
+                <p><strong>Employees:</strong> ${doc.number_of_employees || 'Not specified'}</p>
+                ${Array.isArray(doc.investigations) && doc.investigations.length > 0 ? `
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                  <p><strong>Selected Investigations:</strong> ${doc.investigations.length} test(s) selected</p>
+                  <div style="background-color: #fff; padding: 10px; border-radius: 5px; border: 1px solid #e9ecef;">
+                    <h4 style="color: #228B22; margin-top: 0;">📋 Investigation Details & Pricing:</h4>
+                    ${doc.investigations.map(inv => `<div style=\"display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f1f1f1;\"><span><strong>${inv.test_name}</strong> <small style=\"color:#666;\">(${inv.category})</small></span><span style=\"color:#228B22; font-weight:bold; font-size:16px;\">₦${(inv.price||0).toLocaleString()}</span></div>`).join('')}
+                    <div style="margin-top: 15px; padding-top: 10px; border-top: 2px solid #228B22;">
+                      <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 18px; font-weight: bold;">Total Investigation Cost:</span>
+                        <span style="color: #228B22; font-weight: bold; font-size: 20px;">₦${(doc.total_investigation_cost||0).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                ` : ''}
+                <p><strong>Additional Info:</strong> ${doc.additional_info || 'None'}</p>
+                <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+              </div>
+            `
+          });
+        } catch {}
         return res.status(200).json({ status: 1, data: doc });
       }
       return res.status(405).json({ status: 0, message: 'Method Not Allowed' });
