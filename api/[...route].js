@@ -54,6 +54,14 @@ const adminSchema = new mongoose.Schema({
 });
 const Admin = mongoose.models.Admin || mongoose.model('Admin', adminSchema);
 
+const userSchema = new mongoose.Schema({
+  username: { type: String, unique: true },
+  password: String,
+  role: { type: String, default: 'admin' },
+  created_at: { type: Date, default: Date.now }
+});
+const User = mongoose.models.User || mongoose.model('User', userSchema);
+
 const staffSchema = new mongoose.Schema({
   search_number: String,
   name: String,
@@ -495,18 +503,22 @@ module.exports = async (req, res) => {
       if (req.method !== 'POST') return res.status(405).json({ status: 0, message: 'Method Not Allowed' });
       await connect();
       const { username, password } = jsonBody(req);
+      const uname = (username || '').trim();
+      const pword = (password || '').trim();
       const envUser = (process.env.SUPERADMIN_USER || '').trim();
       const envPass = (process.env.SUPERADMIN_PASS || '').trim();
-      if (username && password && username.trim() === envUser && password.trim() === envPass) {
+      if (uname && pword && uname === envUser && pword === envPass) {
         const token = jwt.sign({ sub: 'env-superadmin', role: 'superadmin', username: envUser }, process.env.JWT_SECRET, { expiresIn: '7d' });
         return res.status(200).json({ status: 1, token, role: 'superadmin' });
       }
-      const admin = await Admin.findOne({ username });
-      if (!admin) return res.status(401).json({ status: 0, message: 'Invalid credentials' });
-      const ok = await bcrypt.compare(password, admin.password);
+      let user = await User.findOne({ username: uname });
+      if (!user) user = await Admin.findOne({ username: uname });
+      if (!user) return res.status(401).json({ status: 0, message: 'User not found' });
+      const ok = await bcrypt.compare(pword, user.password);
       if (!ok) return res.status(401).json({ status: 0, message: 'Invalid credentials' });
-      const token = jwt.sign({ sub: admin._id, role: 'admin', username: admin.username }, process.env.JWT_SECRET, { expiresIn: '7d' });
-      return res.status(200).json({ status: 1, token, role: 'admin' });
+      const role = user.role || 'admin';
+      const token = jwt.sign({ sub: user._id, role, username: user.username }, process.env.JWT_SECRET, { expiresIn: '7d' });
+      return res.status(200).json({ status: 1, token, role });
     }
     if (segments[0] === 'auth' && segments[1] === 'register') {
       if (req.method !== 'POST') return res.status(405).json({ status: 0, message: 'Method Not Allowed' });
