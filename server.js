@@ -329,6 +329,13 @@ const userSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now }
 });
 
+// Legacy admin collection support (for deployments that used a different model)
+const adminLegacySchema = new mongoose.Schema({
+  username: { type: String, unique: true },
+  password: String,
+  created_at: { type: Date, default: Date.now }
+});
+
 const registerTokenSchema = new mongoose.Schema({
   token: { type: String, unique: true },
   used: { type: Boolean, default: false },
@@ -391,11 +398,32 @@ const corporateBookingSchema = new mongoose.Schema({
 
 const Appointment = mongoose.model("Appointment", appointmentSchema);
 const User = mongoose.model("User", userSchema);
+const AdminLegacy = mongoose.models.Admin || mongoose.model("Admin", adminLegacySchema);
 const RegisterToken = mongoose.model("RegisterToken", registerTokenSchema);
 const ActiveToken = mongoose.model("ActiveToken", activeTokenSchema);
 const CorporateBooking = mongoose.model("CorporateBooking", corporateBookingSchema);
 
 // -------------------- HELPERS --------------------
+async function reconcileAdmins() {
+  try {
+    const legacy = await AdminLegacy.find({}, { username: 1, password: 1, created_at: 1 }).lean();
+    let created = 0;
+    for (const a of legacy) {
+      const exists = await User.findOne({ username: a.username });
+      if (!exists) {
+        await User.create({ username: a.username, password: a.password, role: "admin", created_at: a.created_at || new Date() });
+        created++;
+      }
+    }
+    if (created > 0) {
+      console.log(`🔧 Reconciled ${created} admin(s) from legacy collection into users`);
+    } else {
+      console.log("🔧 Reconciliation complete: no legacy admins to migrate");
+    }
+  } catch (err) {
+    console.error("❌ Reconciliation error:", err);
+  }
+}
 function generateUniqueId() {
   const randomNum = Math.floor(100000 + Math.random() * 900000);
   return "HFML" + randomNum;
@@ -531,11 +559,15 @@ app.post("/api/auth/login", async (req, res) => {
       return res.json({ status: 1, token, role: "superadmin" });
     }
 
-    // Normal admin login
-    const user = await User.findOne({ username: username.trim() });
+    // Normal admin login (support both User and legacy Admin collections)
+    const uname = (username || "").trim();
+    let user = await User.findOne({ username: uname });
+    if (!user) {
+      user = await AdminLegacy.findOne({ username: uname });
+    }
     if (!user) return res.json({ status: 0, message: "User not found" });
 
-    const valid = await bcrypt.compare(password.trim(), user.password);
+    const valid = await bcrypt.compare((password || "").trim(), user.password);
     if (!valid) return res.json({ status: 0, message: "Invalid credentials" });
 
     const token = jwt.sign(
@@ -1528,7 +1560,7 @@ if (!mongoUri) {
 }
 
 mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log("✅ MongoDB Connected"))
+  .then(async () => { console.log("✅ MongoDB Connected"); await reconcileAdmins(); })
   .catch(err => console.error("❌ MongoDB Error:", err));
 
 
