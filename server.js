@@ -790,9 +790,13 @@ app.post("/api/appointments", async (req, res) => {
 
 app.get("/api/appointments/:uniqueId", async (req, res) => {
   try {
-    const appointment = await Appointment.findOne({ unique_id: req.params.uniqueId });
+    const raw = req.params.uniqueId || "";
+    const id = decodeURIComponent(raw).trim();
+    let appointment = await Appointment.findOne({ unique_id: id });
+    if (!appointment) appointment = await Appointment.findOne({ unique_id: { $regex: `^${id}$`, $options: "i" } });
+    if (!appointment) appointment = await Appointment.findOne({ booking_id: id });
+    if (!appointment) appointment = await Appointment.findOne({ booking_id: { $regex: `^${id}$`, $options: "i" } });
     if (!appointment) return res.json({ status: 0, message: "No record found" });
-
     res.json({ status: 1, data: appointment });
   } catch (error) {
     res.status(500).json({ status: 0, message: "Error fetching record", error: error.message });
