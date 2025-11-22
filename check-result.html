@@ -211,6 +211,7 @@
   <script>
 // Toggle functionality
 $(document).ready(function() {
+  const API_ROOT = location.origin + '/api';
   // Handle result type toggle
   $('input[name="resultType"]').change(function() {
     const resultType = $(this).val();
@@ -282,7 +283,7 @@ $("#resultForm").on("submit", function(e) {
 function checkIndividualResults(id, alertBox, resultDate, downloadBtn) {
 
   $.ajax({
-    url: "https://hfocusmedical.vercel.app/api/appointments/" + id,
+    url: API_ROOT + "/appointments/" + id,
     method: "GET",
     success: function(resp) {
       if (resp.status === 1 && resp.data) {
@@ -495,7 +496,7 @@ function checkIndividualResults(id, alertBox, resultDate, downloadBtn) {
 function checkCorporateResults(organizationId, alertBox, resultDate, downloadBtn) {
   // Use local API to fetch corporate booking data
   $.ajax({
-    url: "https://hfocusmedical.vercel.app/api/corporate-bookings/" + organizationId,
+    url: API_ROOT + "/corporate-bookings/" + organizationId,
     method: "GET",
     success: function(resp) {
       if (resp.status === 1 && resp.data) {
