@@ -6,10 +6,19 @@ const Busboy = require('busboy');
 const cloudinary = require('cloudinary').v2;
 const { jsPDF } = require('jspdf');
 
-function cors(res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+function cors(req, res) {
+  const origin = req.headers.origin || '';
+  const allowlist = new Set([
+    'http://localhost:3000',
+    'https://hfocusmedical.com',
+    'https://www.hfocusmedical.com',
+    'https://hfocusmedical.vercel.app'
+  ]);
+  const allowedOrigin = allowlist.has(origin) ? origin : '*';
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Vary', 'Origin');
 }
 
 let cached = global.__mongo;
@@ -327,7 +336,7 @@ function jsonBody(req) {
 }
 
 module.exports = async (req, res) => {
-  cors(res);
+  cors(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const url = new URL(req.url, 'http://dummy');
