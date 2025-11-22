@@ -442,8 +442,12 @@ module.exports = async (req, res) => {
     if (segments[0] === 'appointments' && segments[1]) {
       if (req.method !== 'GET') return res.status(405).json({ status: 0, message: 'Method Not Allowed' });
       await connect();
-      const id = segments[1];
-      const appointment = await Appointment.findOne({ unique_id: id });
+      const rawId = segments[1];
+      const id = decodeURIComponent(rawId).trim();
+      let appointment = await Appointment.findOne({ unique_id: id });
+      if (!appointment) appointment = await Appointment.findOne({ unique_id: { $regex: `^${id}$`, $options: 'i' } });
+      if (!appointment) appointment = await Appointment.findOne({ booking_id: id });
+      if (!appointment) appointment = await Appointment.findOne({ booking_id: { $regex: `^${id}$`, $options: 'i' } });
       if (!appointment) return res.status(200).json({ status: 0, message: 'No record found' });
       return res.status(200).json({ status: 1, data: appointment });
     }
@@ -713,9 +717,10 @@ module.exports = async (req, res) => {
     }
     if (segments[0] === 'corporate-bookings' && segments[1] && !segments[2]) {
       await connect();
-      const id = segments[1];
+      const id = decodeURIComponent(segments[1]).trim();
       if (req.method === 'GET') {
-        const org = await CorporateBooking.findOne({ organization_id: id });
+        let org = await CorporateBooking.findOne({ organization_id: id });
+        if (!org) org = await CorporateBooking.findOne({ organization_id: { $regex: `^${id}$`, $options: 'i' } });
         if (!org) return res.status(404).json({ status: 0, message: 'Not found' });
         return res.status(200).json({ status: 1, data: org });
       }
