@@ -721,6 +721,14 @@ module.exports = async (req, res) => {
       if (req.method === 'GET') {
         let org = await CorporateBooking.findOne({ organization_id: id });
         if (!org) org = await CorporateBooking.findOne({ organization_id: { $regex: `^${id}$`, $options: 'i' } });
+        if (!org) org = await CorporateBooking.findOne({ $or: [
+          { 'staff_members.search_number': id },
+          { 'staff_members.searchNumber': id },
+          { 'staff_members.unique_id': id },
+          { 'staff_members.search_number': { $regex: `^${id}$`, $options: 'i' } },
+          { 'staff_members.searchNumber': { $regex: `^${id}$`, $options: 'i' } },
+          { 'staff_members.unique_id': { $regex: `^${id}$`, $options: 'i' } }
+        ] });
         if (!org) return res.status(404).json({ status: 0, message: 'Not found' });
         return res.status(200).json({ status: 1, data: org });
       }

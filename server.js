@@ -1302,10 +1302,19 @@ app.get("/api/corporate-bookings", async (req, res) => {
 // Get corporate booking by organization ID
 app.get("/api/corporate-bookings/:organizationId", async (req, res) => {
   try {
-    const corporateBooking = await CorporateBooking.findOne({ organization_id: req.params.organizationId });
-    if (!corporateBooking) {
-      return res.json({ status: 0, message: "Organization not found" });
-    }
+    const raw = req.params.organizationId || "";
+    const id = decodeURIComponent(raw).trim();
+    let corporateBooking = await CorporateBooking.findOne({ organization_id: id });
+    if (!corporateBooking) corporateBooking = await CorporateBooking.findOne({ organization_id: { $regex: `^${id}$`, $options: "i" } });
+    if (!corporateBooking) corporateBooking = await CorporateBooking.findOne({ $or: [
+      { "staff_members.search_number": id },
+      { "staff_members.searchNumber": id },
+      { "staff_members.unique_id": id },
+      { "staff_members.search_number": { $regex: `^${id}$`, $options: "i" } },
+      { "staff_members.searchNumber": { $regex: `^${id}$`, $options: "i" } },
+      { "staff_members.unique_id": { $regex: `^${id}$`, $options: "i" } }
+    ] });
+    if (!corporateBooking) return res.status(404).json({ status: 0, message: "Organization not found" });
     res.json({ status: 1, data: corporateBooking });
   } catch (error) {
     res.status(500).json({ status: 0, message: "Error fetching corporate booking", error: error.message });
