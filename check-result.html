@@ -209,9 +209,9 @@
 
   <!-- Page Script -->
   <script>
+const API_ROOT = location.origin + '/api';
 // Toggle functionality
 $(document).ready(function() {
-  const API_ROOT = location.origin + '/api';
   // Handle result type toggle
   $('input[name="resultType"]').change(function() {
     const resultType = $(this).val();
