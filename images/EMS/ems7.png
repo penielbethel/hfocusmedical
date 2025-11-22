@@ -1,5 +1,0 @@
-<svg width="200" height="150" xmlns="http://www.w3.org/2000/svg">
-  <rect width="200" height="150" fill="#f0f0f0" stroke="#ccc" stroke-width="2"/>
-  <text x="100" y="75" text-anchor="middle" font-family="Arial" font-size="14" fill="#666">EMS Image 1</text>
-  <text x="100" y="95" text-anchor="middle" font-family="Arial" font-size="12" fill="#999">Placeholder</text>
-</svg>
