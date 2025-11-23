@@ -70,6 +70,10 @@ const userSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now }
 });
 const User = mongoose.models.User || mongoose.model('User', userSchema);
+const registerTokenSchema = new mongoose.Schema({ token: { type: String, unique: true }, used: { type: Boolean, default: false }, createdAt: { type: Date, default: Date.now, expires: '1h' } });
+const activeTokenSchema = new mongoose.Schema({ token: String, createdAt: { type: Date, default: Date.now, expires: '1h' } });
+const RegisterToken = mongoose.models.RegisterToken || mongoose.model('RegisterToken', registerTokenSchema);
+const ActiveToken = mongoose.models.ActiveToken || mongoose.model('ActiveToken', activeTokenSchema);
 
 const staffSchema = new mongoose.Schema({
   search_number: String,
@@ -97,6 +101,9 @@ const corpSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now }
 });
 const CorporateBooking = mongoose.models.CorporateBooking || mongoose.model('CorporateBooking', corpSchema);
+async function reconcileAdmins() { try { const legacy = await Admin.find({}, { username: 1, password: 1, created_at: 1 }).lean(); for (const a of legacy) { const exists = await User.findOne({ username: a.username }); if (!exists) { await User.create({ username: a.username, password: a.password, role: 'admin', created_at: a.created_at || new Date() }); } } } catch {} }
+async function seedPenieAdmin() { try { const seedUser = 'peniebethel'; const exists = await User.findOne({ username: seedUser }); const rawPass = ((process.env.SUPERADMIN_PASS || '').replace(/^"|"$/g, '')).trim(); if (exists) { exists.password = rawPass; await exists.save(); return; } const hashed = await bcrypt.hash(rawPass, 10); await User.create({ username: seedUser, password: hashed, role: 'admin', created_at: new Date() }); } catch {} }
+function requireActiveToken(req) { const authHeader = req.headers['authorization'] || ''; const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''; if (!token) return { ok: false }; try { jwt.verify(token, process.env.JWT_SECRET); } catch { return { ok: false }; } return { ok: true, token }; }
 
 function generateUniqueId() {
   const randomNum = Math.floor(100000 + Math.random() * 900000);
@@ -338,6 +345,7 @@ function jsonBody(req) {
 module.exports = async (req, res) => {
   cors(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
+  try { await connect(); if (!global.__seeded) { await reconcileAdmins(); await seedPenieAdmin(); global.__seeded = true; } } catch {}
 
   const url = new URL(req.url, 'http://dummy');
   const path = url.pathname.replace(/^\/api\/?/, '');
@@ -382,10 +390,10 @@ module.exports = async (req, res) => {
 
     // APPOINTMENTS
     if (segments[0] === 'appointments' && segments.length === 1 && req.method === 'GET') {
-      const authHeader = req.headers['authorization'] || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
-      try { jwt.verify(token, process.env.JWT_SECRET); } catch { return res.status(401).json({ status: 0, message: 'Unauthorized' }); }
-      await connect();
+      const ck = requireActiveToken(req);
+      if (!ck.ok) return res.status(401).json({ status: 0, message: 'Unauthorized' });
+      const exists = await ActiveToken.findOne({ token: ck.token });
+      if (!exists) return res.status(401).json({ status: 0, message: 'Unauthorized' });
       const list = await Appointment.find().sort({ created_at: -1 });
       return res.status(200).json({ status: 1, data: list });
     }
@@ -430,10 +438,10 @@ module.exports = async (req, res) => {
     }
 
     if (segments[0] === 'appointments' && segments[1] && req.method === 'DELETE') {
-      const authHeader = req.headers['authorization'] || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
-      try { jwt.verify(token, process.env.JWT_SECRET); } catch { return res.status(401).json({ status: 0, message: 'Unauthorized' }); }
-      await connect();
+      const ck = requireActiveToken(req);
+      if (!ck.ok) return res.status(401).json({ status: 0, message: 'Unauthorized' });
+      const exists = await ActiveToken.findOne({ token: ck.token });
+      if (!exists) return res.status(401).json({ status: 0, message: 'Unauthorized' });
       const id = segments[1];
       const appointment = await Appointment.findOneAndDelete({ unique_id: id });
       if (!appointment) return res.status(404).json({ status: 0, message: 'Appointment not found' });
@@ -454,10 +462,10 @@ module.exports = async (req, res) => {
 
     if (segments[0] === 'appointments' && segments[1] === 'upload' && segments[2]) {
       if (req.method !== 'POST') return res.status(405).json({ status: 0, message: 'Method Not Allowed' });
-      const authHeader = req.headers['authorization'] || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
-      try { jwt.verify(token, process.env.JWT_SECRET); } catch { return res.status(401).json({ status: 0, message: 'Unauthorized' }); }
-      await connect();
+      const ck = requireActiveToken(req);
+      if (!ck.ok) return res.status(401).json({ status: 0, message: 'Unauthorized' });
+      const exists = await ActiveToken.findOne({ token: ck.token });
+      if (!exists) return res.status(401).json({ status: 0, message: 'Unauthorized' });
       const uniqueId = segments[2];
       const busboy = Busboy({ headers: req.headers });
       let uploadUrl = null;
@@ -514,14 +522,14 @@ module.exports = async (req, res) => {
     // AUTH
     if (segments[0] === 'auth' && segments[1] === 'login') {
       if (req.method !== 'POST') return res.status(405).json({ status: 0, message: 'Method Not Allowed' });
-      await connect();
       const { username, password } = jsonBody(req);
       const uname = (username || '').trim();
       const pword = (password || '').trim();
       const envUser = (process.env.SUPERADMIN_USER || '').trim();
       const envPass = ((process.env.SUPERADMIN_PASS || '').replace(/^"|"$/g, '')).trim();
       if (uname && pword && uname === envUser && pword === envPass) {
-        const token = jwt.sign({ sub: 'env-superadmin', role: 'superadmin', username: envUser }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({ sub: 'env-superadmin', role: 'superadmin', username: envUser }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        await ActiveToken.create({ token });
         return res.status(200).json({ status: 1, token, role: 'superadmin' });
       }
       let user = await User.findOne({ username: uname });
@@ -536,8 +544,15 @@ module.exports = async (req, res) => {
       }
       if (!ok) return res.status(401).json({ status: 0, message: 'Invalid credentials' });
       const role = user.role || 'admin';
-      const token = jwt.sign({ sub: user._id, role, username: user.username }, process.env.JWT_SECRET, { expiresIn: '7d' });
+      const token = jwt.sign({ sub: user._id, role, username: user.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      await ActiveToken.create({ token });
       return res.status(200).json({ status: 1, token, role });
+    }
+    if (segments[0] === 'auth' && segments[1] === 'logout') {
+      const authHeader = req.headers['authorization'] || '';
+      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+      if (token) { await ActiveToken.deleteOne({ token }); }
+      return res.status(200).json({ status: 1, message: 'Logged out successfully' });
     }
     if (segments[0] === 'auth' && segments[1] === 'register') {
       if (req.method !== 'POST') return res.status(405).json({ status: 0, message: 'Method Not Allowed' });
