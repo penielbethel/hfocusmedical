@@ -464,6 +464,11 @@ module.exports = async (req, res) => {
       busboy.on('finish', async () => {
         const appo = await Appointment.findOne({ unique_id: uniqueId });
         if (!appo) return res.status(404).json({ status: 0, message: 'Appointment not found' });
+
+        if (!uploadUrl) {
+          return res.status(500).json({ status: 0, message: 'File upload failed. Please try again.' });
+        }
+
         appo.result_ready = true;
         appo.result_file = uploadUrl;
         await appo.save();
