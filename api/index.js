@@ -437,29 +437,7 @@ module.exports = async (req, res) => {
       return res.status(200).json({ status: 1, message: 'Appointment saved successfully', data: newAppointment });
     }
 
-    if (segments[0] === 'appointments' && segments[1] && req.method === 'DELETE') {
-      const ck = requireActiveToken(req);
-      if (!ck.ok) return res.status(401).json({ status: 0, message: 'Unauthorized' });
-      const exists = await ActiveToken.findOne({ token: ck.token });
-      if (!exists) return res.status(401).json({ status: 0, message: 'Unauthorized' });
-      const id = segments[1];
-      const appointment = await Appointment.findOneAndDelete({ unique_id: id });
-      if (!appointment) return res.status(404).json({ status: 0, message: 'Appointment not found' });
-      return res.status(200).json({ status: 1, message: 'Appointment deleted successfully' });
-    }
-    if (segments[0] === 'appointments' && segments[1]) {
-      if (req.method !== 'GET') return res.status(405).json({ status: 0, message: 'Method Not Allowed' });
-      await connect();
-      const rawId = segments[1];
-      const id = decodeURIComponent(rawId).trim();
-      let appointment = await Appointment.findOne({ unique_id: id });
-      if (!appointment) appointment = await Appointment.findOne({ unique_id: { $regex: `^${id}$`, $options: 'i' } });
-      if (!appointment) appointment = await Appointment.findOne({ booking_id: id });
-      if (!appointment) appointment = await Appointment.findOne({ booking_id: { $regex: `^${id}$`, $options: 'i' } });
-      if (!appointment) return res.status(200).json({ status: 0, message: 'No record found' });
-      return res.status(200).json({ status: 1, data: appointment });
-    }
-
+    // Upload Result (specific route)
     if (segments[0] === 'appointments' && segments[1] === 'upload' && segments[2]) {
       if (req.method !== 'POST') return res.status(405).json({ status: 0, message: 'Method Not Allowed' });
       const ck = requireActiveToken(req);
@@ -494,6 +472,31 @@ module.exports = async (req, res) => {
       req.pipe(busboy);
       return;
     }
+
+    if (segments[0] === 'appointments' && segments[1] && req.method === 'DELETE') {
+      const ck = requireActiveToken(req);
+      if (!ck.ok) return res.status(401).json({ status: 0, message: 'Unauthorized' });
+      const exists = await ActiveToken.findOne({ token: ck.token });
+      if (!exists) return res.status(401).json({ status: 0, message: 'Unauthorized' });
+      const id = segments[1];
+      const appointment = await Appointment.findOneAndDelete({ unique_id: id });
+      if (!appointment) return res.status(404).json({ status: 0, message: 'Appointment not found' });
+      return res.status(200).json({ status: 1, message: 'Appointment deleted successfully' });
+    }
+    if (segments[0] === 'appointments' && segments[1]) {
+      if (req.method !== 'GET') return res.status(405).json({ status: 0, message: 'Method Not Allowed' });
+      await connect();
+      const rawId = segments[1];
+      const id = decodeURIComponent(rawId).trim();
+      let appointment = await Appointment.findOne({ unique_id: id });
+      if (!appointment) appointment = await Appointment.findOne({ unique_id: { $regex: `^${id}$`, $options: 'i' } });
+      if (!appointment) appointment = await Appointment.findOne({ booking_id: id });
+      if (!appointment) appointment = await Appointment.findOne({ booking_id: { $regex: `^${id}$`, $options: 'i' } });
+      if (!appointment) return res.status(200).json({ status: 0, message: 'No record found' });
+      return res.status(200).json({ status: 1, data: appointment });
+    }
+
+
 
     // PUBLIC APPOINTMENTS
     if (segments[0] === 'public' && segments[1] === 'appointments' && segments[2] === 'available-dates') {
