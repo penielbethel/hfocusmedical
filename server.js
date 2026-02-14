@@ -340,7 +340,7 @@ const adminLegacySchema = new mongoose.Schema({
 const registerTokenSchema = new mongoose.Schema({
   token: { type: String, unique: true },
   used: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now, expires: "1h" }
+  createdAt: { type: Date, default: Date.now, expires: "24h" }
 });
 
 const activeTokenSchema = new mongoose.Schema({
@@ -471,9 +471,10 @@ function superAdminMiddleware(req, res, next) {
 // -------------------- AUTH ROUTES --------------------
 
 // Generate one-time token (SuperAdmin only)
+// Generate one-time token (SuperAdmin only - verify role first)
 app.post("/api/auth/generate-token", authMiddleware, superAdminMiddleware, async (req, res) => {
   try {
-    const oneTimeToken = jwt.sign({ type: "admin-register" }, JWT_SECRET, { expiresIn: "1h" });
+    const oneTimeToken = Math.random().toString(36).substring(2) + Date.now().toString(36);
     await RegisterToken.create({ token: oneTimeToken });
     res.json({ status: 1, token: oneTimeToken });
   } catch (error) {
@@ -482,12 +483,23 @@ app.post("/api/auth/generate-token", authMiddleware, superAdminMiddleware, async
 });
 
 // List active one-time tokens (SuperAdmin only)
+// List active one-time tokens (SuperAdmin only)
 app.get("/api/auth/tokens", authMiddleware, superAdminMiddleware, async (req, res) => {
   try {
     const tokens = await RegisterToken.find({ used: false }).sort({ createdAt: -1 });
     res.json({ status: 1, tokens });
   } catch (error) {
     res.status(500).json({ status: 0, message: "Error fetching tokens", error });
+  }
+});
+
+// Delete specific token
+app.delete("/api/auth/tokens/:id", authMiddleware, superAdminMiddleware, async (req, res) => {
+  try {
+    await RegisterToken.findByIdAndDelete(req.params.id);
+    res.json({ status: 1, message: "Token deleted" });
+  } catch (error) {
+    res.status(500).json({ status: 0, message: "Error deleting token", error });
   }
 });
 
@@ -515,27 +527,31 @@ app.delete("/api/admins/:id", authMiddleware, superAdminMiddleware, async (req, 
 });
 
 // Register (Admin with one-time token)
+// Register (Admin with one-time token)
 app.post("/api/auth/register", async (req, res) => {
   try {
     const authHeader = req.headers["authorization"];
-    if (!authHeader) return res.status(401).json({ status: 0, message: "Token required" });
+    const tokenStr = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
 
-    const token = authHeader.split(" ")[1];
-    const savedToken = await RegisterToken.findOne({ token });
+    if (!tokenStr) return res.status(401).json({ status: 0, message: "Token required" });
 
+    // Find token in DB
+    const savedToken = await RegisterToken.findOne({ token: tokenStr });
     if (!savedToken) return res.status(401).json({ status: 0, message: "Invalid or expired token" });
-    if (savedToken.used) return res.status(401).json({ status: 0, message: "Token already used" });
-
-    jwt.verify(token, JWT_SECRET);
 
     const { username, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
+    if (!username || !password) return res.status(400).json({ status: 0, message: "Missing credentials" });
 
+    // Check if user exists
+    const existing = await User.findOne({ username });
+    if (existing) return res.status(400).json({ status: 0, message: "Username already exists" });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({ username, password: hashedPassword, role: "admin" });
     await newUser.save();
 
-    savedToken.used = true;
-    await savedToken.save();
+    // Delete token after use
+    await RegisterToken.deleteOne({ _id: savedToken._id });
 
     res.json({ status: 1, message: "Admin registered successfully" });
   } catch (error) {
