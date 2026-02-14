@@ -569,18 +569,25 @@ module.exports = async (req, res) => {
     }
     if (segments[0] === 'auth' && segments[1] === 'generate-token') {
       if (req.method !== 'POST') return res.status(405).json({ status: 0, message: 'Method Not Allowed' });
-      const authHeader = req.headers['authorization'] || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
-      if (!token || token !== process.env.SUPERADMIN_MASTER_TOKEN) return res.status(401).json({ status: 0, message: 'Unauthorized' });
+      const ck = requireActiveToken(req);
+      if (!ck.ok) return res.status(401).json({ status: 0, message: 'Unauthorized' });
+      const decoded = jwt.decode(ck.token);
+      if (!decoded || decoded.role !== 'superadmin') return res.status(403).json({ status: 0, message: 'Forbidden' });
+
       const newToken = Math.random().toString(36).substring(2) + Date.now().toString(36);
+      await RegisterToken.create({ token: newToken });
       return res.status(200).json({ status: 1, token: newToken });
     }
     if (segments[0] === 'auth' && segments[1] === 'tokens') {
       if (req.method !== 'GET') return res.status(405).json({ status: 0, message: 'Method Not Allowed' });
-      const authHeader = req.headers['authorization'] || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
-      if (!token || token !== process.env.SUPERADMIN_MASTER_TOKEN) return res.status(401).json({ status: 0, message: 'Unauthorized' });
-      return res.status(200).json({ status: 1, data: [] });
+      const ck = requireActiveToken(req);
+      if (!ck.ok) return res.status(401).json({ status: 0, message: 'Unauthorized' });
+      const decoded = jwt.decode(ck.token);
+      if (!decoded || decoded.role !== 'superadmin') return res.status(403).json({ status: 0, message: 'Forbidden' });
+
+      await connect();
+      const tokens = await RegisterToken.find({ used: false }).sort({ createdAt: -1 });
+      return res.status(200).json({ status: 1, tokens: tokens });
     }
 
     // ADMINS
