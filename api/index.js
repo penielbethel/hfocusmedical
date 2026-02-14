@@ -445,51 +445,60 @@ module.exports = async (req, res) => {
       const exists = await ActiveToken.findOne({ token: ck.token });
       if (!exists) return res.status(401).json({ status: 0, message: 'Unauthorized' });
       const uniqueId = segments[2];
-      const busboy = Busboy({ headers: req.headers });
-      let uploadUrl = null;
-      let uploadError = null;
+      return new Promise((resolve, reject) => {
+        const busboy = Busboy({ headers: req.headers });
+        let uploadUrl = null;
+        let uploadError = null;
 
-      busboy.on('file', (name, file, info) => {
-        const chunks = [];
-        file.on('data', data => chunks.push(data));
-        file.on('end', async () => {
-          try {
-            const buffer = Buffer.concat(chunks);
-            const result = await new Promise((resolve, reject) => {
-              const stream = cloudinary.uploader.upload_stream({ resource_type: 'auto', folder: 'hfocus-results', use_filename: true }, (err, resu) => err ? reject(err) : resolve(resu));
-              stream.end(buffer);
-            });
-            uploadUrl = result.secure_url;
-          } catch (e) {
-            console.error('Cloudinary Upload Error:', e);
-            uploadError = e.message;
-            uploadUrl = null;
-          }
+        busboy.on('file', (name, file, info) => {
+          const chunks = [];
+          file.on('data', data => chunks.push(data));
+          file.on('end', async () => {
+            try {
+              const buffer = Buffer.concat(chunks);
+              const result = await new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream({ resource_type: 'auto', folder: 'hfocus-results', use_filename: true }, (err, resu) => err ? reject(err) : resolve(resu));
+                stream.end(buffer);
+              });
+              uploadUrl = result.secure_url;
+            } catch (e) {
+              console.error('Cloudinary Upload Error:', e);
+              uploadError = e.message;
+              uploadUrl = null;
+            }
+          });
         });
-      });
 
-      busboy.on('error', (err) => {
-        console.error('Busboy Error:', err);
-      });
-      busboy.on('finish', async () => {
-        const appo = await Appointment.findOne({ unique_id: uniqueId });
-        if (!appo) return res.status(404).json({ status: 0, message: 'Appointment not found' });
+        busboy.on('error', (err) => {
+          console.error('Busboy Error:', err);
+          if (!res.headersSent) res.status(500).json({ status: 0, message: 'File upload parsing error: ' + err.message });
+          resolve();
+        });
+        busboy.on('finish', async () => {
+          const appo = await Appointment.findOne({ unique_id: uniqueId });
+          if (!appo) {
+            if (!res.headersSent) res.status(404).json({ status: 0, message: 'Appointment not found' });
+            resolve();
+            return;
+          }
 
-        if (!uploadUrl) {
-          return res.status(500).json({ status: 0, message: uploadError || 'File upload failed. Please try again.' });
-        }
+          if (!uploadUrl) {
+            if (!res.headersSent) res.status(500).json({ status: 0, message: uploadError || 'File upload failed (check file size/type). Please try again.' });
+            resolve();
+            return;
+          }
 
-        appo.result_ready = true;
-        appo.result_file = uploadUrl;
-        await appo.save();
+          appo.result_ready = true;
+          appo.result_file = uploadUrl;
+          await appo.save();
 
-        // Notify user via Email
-        if (appo.email) {
-          try {
-            await sendMail({
-              to: appo.email,
-              subject: `Your Test Results are Ready - H-Focus Medical Laboratory`,
-              html: `
+          // Notify user via Email
+          if (appo.email) {
+            try {
+              await sendMail({
+                to: appo.email,
+                subject: `Your Test Results are Ready - H-Focus Medical Laboratory`,
+                html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
                   <div style="background-color: #228B22; color: white; padding: 15px; border-radius: 8px 8px 0 0; text-align: center;">
                     <h2 style="margin: 0;">Test Results Available</h2>
@@ -514,16 +523,17 @@ module.exports = async (req, res) => {
                   </div>
                 </div>
               `
-            });
-          } catch (e) {
-            console.error('Failed to send result notification email:', e);
+              });
+            } catch (e) {
+              console.error('Failed to send result notification email:', e);
+            }
           }
-        }
 
-        return res.status(200).json({ status: 1, message: 'Result uploaded and patient notified', url: uploadUrl });
+          if (!res.headersSent) res.status(200).json({ status: 1, message: 'Result uploaded and patient notified', url: uploadUrl });
+          resolve();
+        });
+        req.pipe(busboy);
       });
-      req.pipe(busboy);
-      return;
     }
 
     if (segments[0] === 'appointments' && segments[1] && req.method === 'DELETE') {
