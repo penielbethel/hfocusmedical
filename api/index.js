@@ -447,6 +447,8 @@ module.exports = async (req, res) => {
       const uniqueId = segments[2];
       const busboy = Busboy({ headers: req.headers });
       let uploadUrl = null;
+      let uploadError = null;
+
       busboy.on('file', (name, file, info) => {
         const chunks = [];
         file.on('data', data => chunks.push(data));
@@ -458,15 +460,23 @@ module.exports = async (req, res) => {
               stream.end(buffer);
             });
             uploadUrl = result.secure_url;
-          } catch (e) { uploadUrl = null; }
+          } catch (e) {
+            console.error('Cloudinary Upload Error:', e);
+            uploadError = e.message;
+            uploadUrl = null;
+          }
         });
+      });
+
+      busboy.on('error', (err) => {
+        console.error('Busboy Error:', err);
       });
       busboy.on('finish', async () => {
         const appo = await Appointment.findOne({ unique_id: uniqueId });
         if (!appo) return res.status(404).json({ status: 0, message: 'Appointment not found' });
 
         if (!uploadUrl) {
-          return res.status(500).json({ status: 0, message: 'File upload failed. Please try again.' });
+          return res.status(500).json({ status: 0, message: uploadError || 'File upload failed. Please try again.' });
         }
 
         appo.result_ready = true;
