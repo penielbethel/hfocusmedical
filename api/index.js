@@ -467,7 +467,45 @@ module.exports = async (req, res) => {
         appo.result_ready = true;
         appo.result_file = uploadUrl;
         await appo.save();
-        return res.status(200).json({ status: 1, message: 'Result uploaded', url: uploadUrl });
+
+        // Notify user via Email
+        if (appo.email) {
+          try {
+            await sendMail({
+              to: appo.email,
+              subject: `Your Test Results are Ready - H-Focus Medical Laboratory`,
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                  <div style="background-color: #228B22; color: white; padding: 15px; border-radius: 8px 8px 0 0; text-align: center;">
+                    <h2 style="margin: 0;">Test Results Available</h2>
+                  </div>
+                  <div style="padding: 20px;">
+                    <p style="font-size: 16px;">Dear <strong>${appo.first_name || 'Patient'}</strong>,</p>
+                    <p style="font-size: 16px; color: #333;">Great news! Your medical test results are now ready for viewing and download.</p>
+                    
+                    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                      <p style="margin: 0 0 10px;"><strong>Unique ID:</strong> ${appo.unique_id}</p>
+                      <p style="margin: 0;"><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                    </div>
+
+                    <div style="text-align: center; margin: 30px 0;">
+                      <a href="https://hfocusmedical.com/check-result.html" style="background-color: #228B22; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">Check Your Result Now</a>
+                    </div>
+                    
+                    <p style="font-size: 14px; color: #666;">Or visit manually: <a href="https://hfocusmedical.com/check-result.html">https://hfocusmedical.com/check-result.html</a></p>
+                  </div>
+                  <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #888; border-top: 1px solid #eee; padding-top: 15px;">
+                    &copy; ${new Date().getFullYear()} H-Focus Medical Laboratory. All rights reserved.
+                  </div>
+                </div>
+              `
+            });
+          } catch (e) {
+            console.error('Failed to send result notification email:', e);
+          }
+        }
+
+        return res.status(200).json({ status: 1, message: 'Result uploaded and patient notified', url: uploadUrl });
       });
       req.pipe(busboy);
       return;
