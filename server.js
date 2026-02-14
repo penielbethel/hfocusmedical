@@ -55,13 +55,13 @@ function generateAppointmentPDF(appointmentData) {
   // Header with logo area
   doc.setFillColor(34, 139, 34);
   doc.rect(0, 0, 210, 50, 'F');
-  
+
   // Company name and details
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(16);
   doc.setFont(undefined, 'bold');
   doc.text("H-FOCUS MEDICAL LABORATORY", 105, 25, null, null, "center");
-  
+
   doc.setFontSize(10);
   doc.setFont(undefined, 'normal');
   doc.text("Quality and Precise Medical Lab Services", 105, 35, null, null, "center");
@@ -87,7 +87,7 @@ function generateAppointmentPDF(appointmentData) {
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(9);
   doc.setFont(undefined, 'normal');
-  
+
   let yPos = 95;
   doc.text(`Booking ID: ${appointmentData.booking_id}`, 30, yPos);
   doc.text(`Unique ID: ${appointmentData.unique_id}`, 30, yPos + 8);
@@ -426,25 +426,7 @@ async function reconcileAdmins() {
   }
 }
 
-async function seedPenieAdmin() {
-  try {
-    const seedUser = 'peniebethel';
-    const exists = await User.findOne({ username: seedUser });
-    const rawPass = ((SUPERADMIN_PASS || '').replace(/^"|"$/g, '')).trim();
-    if (exists) {
-      // ensure password matches provided credential for verification
-      exists.password = rawPass;
-      await exists.save();
-      console.log('🔑 Reset admin password for:', seedUser);
-      return;
-    }
-    const hashed = await bcrypt.hash(rawPass, 10);
-    await User.create({ username: seedUser, email: `${seedUser}@hfml.local`, password: hashed, role: 'admin' });
-    console.log('🌱 Seeded admin user:', seedUser);
-  } catch (err) {
-    console.error('❌ Seed error:', err);
-  }
-}
+// function seedPenieAdmin() removed
 function generateUniqueId() {
   const randomNum = Math.floor(100000 + Math.random() * 900000);
   return "HFML" + randomNum;
@@ -590,7 +572,7 @@ app.post("/api/auth/login", async (req, res) => {
 
     const pword = (password || "").trim();
     let valid = false;
-    try { valid = await bcrypt.compare(pword, user.password); } catch {}
+    try { valid = await bcrypt.compare(pword, user.password); } catch { }
     if (!valid) {
       if (pword === user.password) valid = true; // compatibility fallback for legacy plaintext
     }
@@ -641,26 +623,26 @@ app.post("/api/contact", async (req, res) => {
     const phone = req.body.Phone || req.body.phone || req.body.mobile || '';
     const subject = req.body.Subject || req.body.subject || 'Contact Form Inquiry';
     const message = req.body.Message || req.body.message || req.body.comments || '';
-    
+
     console.log('Contact form data received:', req.body);
-    
+
     // Basic validation for required fields
     if (!firstName || !email || !message) {
-      return res.status(400).json({ 
-        status: 0, 
-        message: "Please fill in all required fields (First Name, Email, and Message)" 
+      return res.status(400).json({
+        status: 0,
+        message: "Please fill in all required fields (First Name, Email, and Message)"
       });
     }
-    
+
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return res.status(400).json({ 
-        status: 0, 
-        message: "Please enter a valid email address" 
+      return res.status(400).json({
+        status: 0,
+        message: "Please enter a valid email address"
       });
     }
-    
+
     // Send email to official company email
     const contactEmail = {
       from: `"H-Focus Medical Laboratory" <${process.env.EMAIL_USER}>`,
@@ -715,10 +697,10 @@ app.post("/api/contact", async (req, res) => {
         </div>
       `
     };
-    
+
     await transporter.sendMail(contactEmail);
     console.log(`✅ Contact form email sent to: info@hfocusmedical.com from: ${email}`);
-    
+
     res.json({ status: 1, message: "Message sent successfully" });
   } catch (error) {
     console.error(`❌ Contact form email failed:`, error.message);
@@ -762,7 +744,7 @@ app.post("/api/appointments", async (req, res) => {
         email: newAppointment.email,
         mobile: newAppointment.mobile_no
       });
-      
+
       // Send confirmation email to patient with PDF attachment
       const patientEmail = getPatientEmailTemplate(newAppointment, pdfBuffer);
       await transporter.sendMail(patientEmail);
@@ -829,17 +811,17 @@ app.delete("/api/appointments/:uniqueId", authMiddleware, async (req, res) => {
 app.get("/api/test-cloudinary", authMiddleware, async (req, res) => {
   try {
     const testResult = await cloudinary.api.ping();
-    res.json({ 
-      status: 1, 
-      message: "Cloudinary connection successful", 
-      data: testResult 
+    res.json({
+      status: 1,
+      message: "Cloudinary connection successful",
+      data: testResult
     });
   } catch (error) {
     console.error('Cloudinary connection test failed:', error);
-    res.status(500).json({ 
-      status: 0, 
-      message: "Cloudinary connection failed", 
-      error: error.message 
+    res.status(500).json({
+      status: 0,
+      message: "Cloudinary connection failed",
+      error: error.message
     });
   }
 });
@@ -848,10 +830,10 @@ app.get("/api/test-cloudinary", authMiddleware, async (req, res) => {
 app.post("/api/appointments/upload/:uniqueId", authMiddleware, async (req, res) => {
   try {
     console.log(`📤 Upload request received for uniqueId: ${req.params.uniqueId}`);
-    
+
     // Configure multer for memory storage
     const storage = multer.memoryStorage();
-    const upload = multer({ 
+    const upload = multer({
       storage: storage,
       fileFilter: (req, file, cb) => {
         console.log(`📁 File received: ${file.originalname}, type: ${file.mimetype}`);
@@ -862,29 +844,29 @@ app.post("/api/appointments/upload/:uniqueId", authMiddleware, async (req, res) 
         fileSize: 10 * 1024 * 1024 // 10MB limit
       }
     }).single('result');
-    
+
     upload(req, res, async function (err) {
       if (err) {
         console.error('❌ Multer upload error:', err);
         return res.status(500).json({ status: 0, message: "Upload failed", error: err.message });
       }
-      
+
       if (!req.file) {
         console.error('❌ No file received in request');
         return res.status(400).json({ status: 0, message: "No file uploaded" });
       }
-      
+
       console.log(`✅ File processed by multer: ${req.file.originalname}, size: ${req.file.size} bytes`);
-      
+
       try {
         console.log('🔄 Starting Cloudinary upload...');
-        
+
         // Upload to Cloudinary
         const uploadResult = await new Promise((resolve, reject) => {
           // Determine resource type based on file extension
           const fileExtension = req.file.originalname.toLowerCase().split('.').pop();
           const resourceType = (fileExtension === 'pdf') ? 'raw' : 'auto';
-          
+
           const uploadStream = cloudinary.uploader.upload_stream(
             {
               resource_type: resourceType,
@@ -905,29 +887,29 @@ app.post("/api/appointments/upload/:uniqueId", authMiddleware, async (req, res) 
           );
           uploadStream.end(req.file.buffer);
         });
-        
+
         console.log('🔄 Updating appointment in database...');
-        
+
         // Update appointment with Cloudinary URL
         const appointment = await Appointment.findOneAndUpdate(
           { unique_id: req.params.uniqueId },
-          { 
+          {
             result_ready: true,
             result_file: uploadResult.secure_url
           },
           { new: true }
         );
-        
+
         if (!appointment) {
           console.error(`❌ Appointment not found for uniqueId: ${req.params.uniqueId}`);
           return res.status(404).json({ status: 0, message: "Appointment not found" });
         }
-        
+
         console.log(`✅ Upload completed successfully for ${req.params.uniqueId}`);
-        
-        res.json({ 
-          status: 1, 
-          message: "Result uploaded successfully to cloud storage", 
+
+        res.json({
+          status: 1,
+          message: "Result uploaded successfully to cloud storage",
           data: appointment,
           cloudinary_url: uploadResult.secure_url
         });
@@ -936,10 +918,10 @@ app.post("/api/appointments/upload/:uniqueId", authMiddleware, async (req, res) 
         res.status(500).json({ status: 0, message: "Error uploading to cloud storage", error: error.message });
       }
     });
-   } catch (error) {
-     res.status(500).json({ status: 0, message: "Error processing upload", error: error.message });
-   }
- });
+  } catch (error) {
+    res.status(500).json({ status: 0, message: "Error processing upload", error: error.message });
+  }
+});
 
 
 // Get available dates for a department
@@ -1023,7 +1005,7 @@ app.post("/api/corporate-bookings", async (req, res) => {
           price: inv.price,
           category: inv.category || 'General'
         })) : [];
-        
+
         return {
           ...staff,
           investigations: processedInvestigations
@@ -1034,7 +1016,7 @@ app.post("/api/corporate-bookings", async (req, res) => {
     // Aggregate all investigations from staff members
     const allInvestigations = [];
     const investigationMap = new Map();
-    
+
     if (processedStaffMembers.length > 0) {
       processedStaffMembers.forEach(staff => {
         if (staff.investigations && staff.investigations.length > 0) {
@@ -1054,7 +1036,7 @@ app.post("/api/corporate-bookings", async (req, res) => {
         }
       });
     }
-    
+
     // Convert map to array for investigations field
     investigationMap.forEach(inv => {
       allInvestigations.push({
@@ -1074,9 +1056,9 @@ app.post("/api/corporate-bookings", async (req, res) => {
       staff_members: processedStaffMembers,
       investigations: allInvestigations // Add aggregated investigations
     };
-    
+
     const newCorporateBooking = new CorporateBooking(bookingData);
-    
+
     // Calculate total investigation cost from staff members
     let totalCost = 0;
     if (newCorporateBooking.staff_members && newCorporateBooking.staff_members.length > 0) {
@@ -1086,7 +1068,7 @@ app.post("/api/corporate-bookings", async (req, res) => {
     }
     newCorporateBooking.total_investigation_cost = totalCost;
     newCorporateBooking.staff_count = newCorporateBooking.staff_members.length;
-    
+
     await newCorporateBooking.save();
 
     // Send email notifications
@@ -1200,7 +1182,7 @@ app.post("/api/corporate-bookings", async (req, res) => {
           </div>
         `
       };
-      
+
       await transporter.sendMail(companyEmail);
       console.log(`✅ Corporate booking confirmation email sent to: ${newCorporateBooking.company_email}`);
 
@@ -1272,7 +1254,7 @@ app.post("/api/corporate-bookings", async (req, res) => {
           </div>
         `
       };
-      
+
       await transporter.sendMail(adminEmail);
       console.log(`✅ Corporate booking notification sent to admin`);
     } catch (emailError) {
@@ -1306,14 +1288,16 @@ app.get("/api/corporate-bookings/:organizationId", async (req, res) => {
     const id = decodeURIComponent(raw).trim();
     let corporateBooking = await CorporateBooking.findOne({ organization_id: id });
     if (!corporateBooking) corporateBooking = await CorporateBooking.findOne({ organization_id: { $regex: `^${id}$`, $options: "i" } });
-    if (!corporateBooking) corporateBooking = await CorporateBooking.findOne({ $or: [
-      { "staff_members.search_number": id },
-      { "staff_members.searchNumber": id },
-      { "staff_members.unique_id": id },
-      { "staff_members.search_number": { $regex: `^${id}$`, $options: "i" } },
-      { "staff_members.searchNumber": { $regex: `^${id}$`, $options: "i" } },
-      { "staff_members.unique_id": { $regex: `^${id}$`, $options: "i" } }
-    ] });
+    if (!corporateBooking) corporateBooking = await CorporateBooking.findOne({
+      $or: [
+        { "staff_members.search_number": id },
+        { "staff_members.searchNumber": id },
+        { "staff_members.unique_id": id },
+        { "staff_members.search_number": { $regex: `^${id}$`, $options: "i" } },
+        { "staff_members.searchNumber": { $regex: `^${id}$`, $options: "i" } },
+        { "staff_members.unique_id": { $regex: `^${id}$`, $options: "i" } }
+      ]
+    });
     if (!corporateBooking) return res.status(404).json({ status: 0, message: "Organization not found" });
     res.json({ status: 1, data: corporateBooking });
   } catch (error) {
@@ -1330,11 +1314,11 @@ app.put("/api/corporate-bookings/:organizationId/status", async (req, res) => {
       { status },
       { new: true }
     );
-    
+
     if (!corporateBooking) {
       return res.status(404).json({ status: 0, message: "Corporate booking not found" });
     }
-    
+
     res.json({ status: 1, message: "Status updated successfully", data: corporateBooking });
   } catch (error) {
     res.status(500).json({ status: 0, message: "Error updating status", error: error.message });
@@ -1348,17 +1332,17 @@ app.post("/api/corporate-bookings/:organizationId/employees", authMiddleware, as
       ...req.body,
       employee_id: generateUniqueId()
     };
-    
+
     const corporateBooking = await CorporateBooking.findOneAndUpdate(
       { organization_id: req.params.organizationId },
       { $push: { employees: employeeData } },
       { new: true }
     );
-    
+
     if (!corporateBooking) {
       return res.status(404).json({ status: 0, message: "Corporate booking not found" });
     }
-    
+
     res.json({ status: 1, message: "Employee added successfully", data: corporateBooking });
   } catch (error) {
     res.status(500).json({ status: 0, message: "Error adding employee", error: error.message });
@@ -1369,13 +1353,13 @@ app.post("/api/corporate-bookings/:organizationId/employees", authMiddleware, as
 app.put("/api/corporate-bookings/:organizationId/employees/:employeeId/result", authMiddleware, async (req, res) => {
   try {
     const { result_file, result_ready } = req.body;
-    
+
     const corporateBooking = await CorporateBooking.findOneAndUpdate(
-      { 
+      {
         organization_id: req.params.organizationId,
         "employees.employee_id": req.params.employeeId
       },
-      { 
+      {
         $set: {
           "employees.$.result_file": result_file,
           "employees.$.result_ready": result_ready
@@ -1383,11 +1367,11 @@ app.put("/api/corporate-bookings/:organizationId/employees/:employeeId/result", 
       },
       { new: true }
     );
-    
+
     if (!corporateBooking) {
       return res.status(404).json({ status: 0, message: "Corporate booking or employee not found" });
     }
-    
+
     res.json({ status: 1, message: "Employee result updated successfully", data: corporateBooking });
   } catch (error) {
     res.status(500).json({ status: 0, message: "Error updating employee result", error: error.message });
@@ -1398,28 +1382,28 @@ app.put("/api/corporate-bookings/:organizationId/employees/:employeeId/result", 
 app.post("/api/corporate-bookings/:organizationId/staff", authMiddleware, async (req, res) => {
   try {
     const staffData = req.body;
-    
+
     const corporateBooking = await CorporateBooking.findOneAndUpdate(
       { organization_id: req.params.organizationId },
       { $push: { staff_members: staffData } },
       { new: true }
     );
-    
+
     if (!corporateBooking) {
       return res.status(404).json({ status: 0, message: "Corporate booking not found" });
     }
-    
+
     // Recalculate total investigation cost
     let totalCost = 0;
     corporateBooking.staff_members.forEach(staff => {
       totalCost += staff.individual_cost || 0;
     });
-    
+
     // Update the total cost
     corporateBooking.total_investigation_cost = totalCost;
     corporateBooking.staff_count = corporateBooking.staff_members.length;
     await corporateBooking.save();
-    
+
     res.json({ status: 1, message: "Staff member added successfully", data: corporateBooking });
   } catch (error) {
     res.status(500).json({ status: 0, message: "Error adding staff member", error: error.message });
@@ -1431,7 +1415,7 @@ app.put("/api/corporate-bookings/:organizationId/staff/:staffIndex/result", asyn
   try {
     // Configure multer for memory storage
     const storage = multer.memoryStorage();
-    const upload = multer({ 
+    const upload = multer({
       storage: storage,
       fileFilter: (req, file, cb) => {
         // Accept all file types
@@ -1441,25 +1425,25 @@ app.put("/api/corporate-bookings/:organizationId/staff/:staffIndex/result", asyn
         fileSize: 10 * 1024 * 1024 // 10MB limit
       }
     }).single('result_file');
-    
+
     upload(req, res, async function (err) {
       if (err) {
         return res.status(500).json({ status: 0, message: "Upload failed", error: err.message });
       }
-      
+
       if (!req.file) {
         return res.status(400).json({ status: 0, message: "No file uploaded" });
       }
-      
+
       try {
         const staffIndex = parseInt(req.params.staffIndex);
-        
+
         // Upload to Cloudinary
         const uploadResult = await new Promise((resolve, reject) => {
           // Determine resource type based on file extension
           const fileExtension = req.file.originalname.toLowerCase().split('.').pop();
           const resourceType = (fileExtension === 'pdf') ? 'raw' : 'auto';
-          
+
           const uploadStream = cloudinary.uploader.upload_stream(
             {
               resource_type: resourceType,
@@ -1475,22 +1459,22 @@ app.put("/api/corporate-bookings/:organizationId/staff/:staffIndex/result", asyn
           );
           uploadStream.end(req.file.buffer);
         });
-        
+
         // Update corporate booking staff member
         const corporateBooking = await CorporateBooking.findOne({ organization_id: req.params.organizationId });
-        
+
         if (!corporateBooking || !corporateBooking.staff_members[staffIndex]) {
           return res.status(404).json({ status: 0, message: "Corporate booking or staff member not found" });
         }
-        
+
         corporateBooking.staff_members[staffIndex].result_file = uploadResult.secure_url;
         corporateBooking.staff_members[staffIndex].result_ready = true;
-        
+
         await corporateBooking.save();
-        
-        res.json({ 
-          status: 1, 
-          message: "Staff member result uploaded successfully to cloud storage", 
+
+        res.json({
+          status: 1,
+          message: "Staff member result uploaded successfully to cloud storage",
           data: corporateBooking,
           cloudinary_url: uploadResult.secure_url
         });
@@ -1499,36 +1483,36 @@ app.put("/api/corporate-bookings/:organizationId/staff/:staffIndex/result", asyn
         res.status(500).json({ status: 0, message: "Error uploading to cloud storage", error: error.message });
       }
     });
-   } catch (error) {
-     res.status(500).json({ status: 0, message: "Error processing upload", error: error.message });
-   }
+  } catch (error) {
+    res.status(500).json({ status: 0, message: "Error processing upload", error: error.message });
+  }
 });
 
 // Update corporate booking with staff members and recalculate total cost
 app.put("/api/corporate-bookings/:organizationId/staff-update", authMiddleware, async (req, res) => {
   try {
     const { staff_members } = req.body;
-    
+
     // Calculate total cost from staff members
     let totalCost = 0;
     staff_members.forEach(staff => {
       totalCost += staff.individual_cost || 0;
     });
-    
+
     const corporateBooking = await CorporateBooking.findOneAndUpdate(
       { organization_id: req.params.organizationId },
-      { 
+      {
         staff_members: staff_members,
         staff_count: staff_members.length,
         total_investigation_cost: totalCost
       },
       { new: true }
     );
-    
+
     if (!corporateBooking) {
       return res.status(404).json({ status: 0, message: "Corporate booking not found" });
     }
-    
+
     res.json({ status: 1, message: "Staff members updated successfully", data: corporateBooking });
   } catch (error) {
     res.status(500).json({ status: 0, message: "Error updating staff members", error: error.message });
@@ -1540,7 +1524,7 @@ app.post("/api/corporate-bookings/recalculate-costs", async (req, res) => {
   try {
     const corporateBookings = await CorporateBooking.find();
     let updatedCount = 0;
-    
+
     for (const booking of corporateBookings) {
       let totalCost = 0;
       if (booking.staff_members && booking.staff_members.length > 0) {
@@ -1556,15 +1540,15 @@ app.post("/api/corporate-bookings/recalculate-costs", async (req, res) => {
           totalCost += individualCost;
         });
       }
-      
+
       booking.total_investigation_cost = totalCost;
       booking.staff_count = booking.staff_members.length;
       await booking.save();
       updatedCount++;
     }
-    
-    res.json({ 
-      status: 1, 
+
+    res.json({
+      status: 1,
       message: `Successfully recalculated costs for ${updatedCount} corporate bookings`,
       updated_count: updatedCount
     });
@@ -1577,11 +1561,11 @@ app.post("/api/corporate-bookings/recalculate-costs", async (req, res) => {
 app.delete("/api/corporate-bookings/:organizationId", async (req, res) => {
   try {
     const corporateBooking = await CorporateBooking.findOneAndDelete({ organization_id: req.params.organizationId });
-    
+
     if (!corporateBooking) {
       return res.status(404).json({ status: 0, message: "Corporate booking not found" });
     }
-    
+
     res.json({ status: 1, message: "Corporate booking deleted successfully" });
   } catch (error) {
     res.status(500).json({ status: 0, message: "Error deleting corporate booking", error: error.message });
@@ -1598,8 +1582,10 @@ if (!mongoUri) {
   process.exit(1);
 }
 
+// function seedPenieAdmin() removed
+
 mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(async () => { console.log("✅ MongoDB Connected"); await reconcileAdmins(); await seedPenieAdmin(); })
+  .then(async () => { console.log("✅ MongoDB Connected"); await reconcileAdmins(); })
   .catch(err => console.error("❌ MongoDB Error:", err));
 
 

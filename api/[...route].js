@@ -101,8 +101,8 @@ const corpSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now }
 });
 const CorporateBooking = mongoose.models.CorporateBooking || mongoose.model('CorporateBooking', corpSchema);
-async function reconcileAdmins() { try { const legacy = await Admin.find({}, { username: 1, password: 1, created_at: 1 }).lean(); for (const a of legacy) { const exists = await User.findOne({ username: a.username }); if (!exists) { await User.create({ username: a.username, password: a.password, role: 'admin', created_at: a.created_at || new Date() }); } } } catch {} }
-async function seedPenieAdmin() { try { const seedUser = 'peniebethel'; const exists = await User.findOne({ username: seedUser }); const rawPass = ((process.env.SUPERADMIN_PASS || '').replace(/^"|"$/g, '')).trim(); if (exists) { exists.password = rawPass; await exists.save(); return; } const hashed = await bcrypt.hash(rawPass, 10); await User.create({ username: seedUser, password: hashed, role: 'admin', created_at: new Date() }); } catch {} }
+async function reconcileAdmins() { try { const legacy = await Admin.find({}, { username: 1, password: 1, created_at: 1 }).lean(); for (const a of legacy) { const exists = await User.findOne({ username: a.username }); if (!exists) { await User.create({ username: a.username, password: a.password, role: 'admin', created_at: a.created_at || new Date() }); } } } catch { } }
+// function seedPenieAdmin() removed
 function requireActiveToken(req) { const authHeader = req.headers['authorization'] || ''; const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''; if (!token) return { ok: false }; try { jwt.verify(token, process.env.JWT_SECRET); } catch { return { ok: false }; } return { ok: true, token }; }
 
 function generateUniqueId() {
@@ -345,7 +345,7 @@ function jsonBody(req) {
 module.exports = async (req, res) => {
   cors(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
-  try { await connect(); if (!global.__seeded) { await reconcileAdmins(); await seedPenieAdmin(); global.__seeded = true; } } catch {}
+  try { await connect(); if (!global.__seeded) { await reconcileAdmins(); global.__seeded = true; } } catch { }
 
   const url = new URL(req.url, 'http://dummy');
   const path = url.pathname.replace(/^\/api\/?/, '');
@@ -419,7 +419,7 @@ module.exports = async (req, res) => {
           email: newAppointment.email || '',
           mobile: newAppointment.mobile_no || ''
         });
-      } catch {}
+      } catch { }
       try {
         if (pdfBuffer) {
           await sendMail(getPatientEmailTemplate(newAppointment, pdfBuffer));
@@ -430,10 +430,10 @@ module.exports = async (req, res) => {
             html: `<div style="font-family:Arial, sans-serif; max-width:640px; margin:auto; border:1px solid #e5e5e5; border-radius:10px; overflow:hidden;"><div style="background:#228B22; color:#fff; padding:12px 18px;"><h3 style="margin:0; font-size:18px;">H-Focus Medical Laboratory</h3><div style="font-size:13px; opacity:0.9;">Appointment Confirmation</div></div><div style="padding:18px;"><table style="width:100%; border-collapse:collapse; font-size:14px;"><tr><td style="padding:6px 8px; font-weight:600;">Booking ID</td><td style="padding:6px 8px;">${newAppointment.booking_id}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Unique ID</td><td style="padding:6px 8px;">${newAppointment.unique_id}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Department</td><td style="padding:6px 8px;">${newAppointment.department || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Center</td><td style="padding:6px 8px;">${newAppointment.center_name || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Date</td><td style="padding:6px 8px;">${newAppointment.appointment_date || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Time</td><td style="padding:6px 8px;">${newAppointment.appointment_time || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Title</td><td style="padding:6px 8px;">${newAppointment.title || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Patient</td><td style="padding:6px 8px;">${newAppointment.first_name || ''} ${newAppointment.last_name || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Gender</td><td style="padding:6px 8px;">${newAppointment.gender || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">DOB</td><td style="padding:6px 8px;">${newAppointment.dob || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Mobile</td><td style="padding:6px 8px;">${newAppointment.mobile_no || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Email</td><td style="padding:6px 8px;">${newAppointment.email || ''}</td></tr><tr><td style="padding:6px 8px; font-weight:600;">Weight</td><td style="padding:6px 8px;">${newAppointment.weight || ''}</td></tr></table><div style="margin-top:12px; font-size:12px; color:#555;">Please keep your Unique ID for result checking.</div></div></div>`
           });
         }
-      } catch {}
+      } catch { }
       try {
         await sendMail(getCompanyEmailTemplate(newAppointment));
-      } catch {}
+      } catch { }
       return res.status(200).json({ status: 1, message: 'Appointment saved successfully', data: newAppointment });
     }
 
@@ -515,7 +515,7 @@ module.exports = async (req, res) => {
       const date = params.get('date');
       const department = params.get('department');
       if (!date || !department) return res.status(400).json({ status: 0, message: 'Missing date or department' });
-      const allSlots = ['09:00 AM','10:00 AM','11:00 AM','12:00 PM','01:00 PM','02:00 PM','03:00 PM','04:00 PM'];
+      const allSlots = ['09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'];
       return res.status(200).json({ status: 1, date, department, slots: allSlots });
     }
 
@@ -538,7 +538,7 @@ module.exports = async (req, res) => {
       if (!user) user = await Admin.findOne({ username: { $regex: `^${uname}$`, $options: 'i' } });
       if (!user) return res.status(401).json({ status: 0, message: 'User not found' });
       let ok = false;
-      try { ok = await bcrypt.compare(pword, user.password); } catch {}
+      try { ok = await bcrypt.compare(pword, user.password); } catch { }
       if (!ok) {
         if (pword === user.password) ok = true; // compatibility fallback for legacy plaintext
       }
@@ -669,8 +669,8 @@ module.exports = async (req, res) => {
                     <tr><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Number of Employees:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${doc.number_of_employees || 'Not specified'}</td></tr>
                     ${Array.isArray(doc.investigations) && doc.investigations.length > 0 ? `
                     <tr><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Selected Investigations:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;">${doc.investigations.length} test(s) selected</td></tr>
-                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Investigation Details & Pricing:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><div style="background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin: 5px 0;">${doc.investigations.map(inv => `<div style=\"display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid #e9ecef;\"><span><strong>${inv.test_name}</strong> <small style=\"color:#666;\">(${inv.category})</small></span><span style=\"color:#228B22; font-weight:bold;\">₦${(inv.price||0).toLocaleString()}</span></div>`).join('')}</div></td></tr>
-                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Total Investigation Cost:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1; color: #228B22;"><strong>₦${(doc.total_investigation_cost||0).toLocaleString()}</strong></td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Investigation Details & Pricing:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><div style="background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin: 5px 0;">${doc.investigations.map(inv => `<div style=\"display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid #e9ecef;\"><span><strong>${inv.test_name}</strong> <small style=\"color:#666;\">(${inv.category})</small></span><span style=\"color:#228B22; font-weight:bold;\">₦${(inv.price || 0).toLocaleString()}</span></div>`).join('')}</div></td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1;"><strong>Total Investigation Cost:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #f1f1f1; color: #228B22;"><strong>₦${(doc.total_investigation_cost || 0).toLocaleString()}</strong></td></tr>
                     ` : ''}
                   </table>
                 </div>
@@ -690,7 +690,7 @@ module.exports = async (req, res) => {
               </div>
             `
           });
-        } catch {}
+        } catch { }
         try {
           await sendMail({
             to: process.env.EMAIL_USER,
@@ -710,11 +710,11 @@ module.exports = async (req, res) => {
                   <p><strong>Selected Investigations:</strong> ${doc.investigations.length} test(s) selected</p>
                   <div style="background-color: #fff; padding: 10px; border-radius: 5px; border: 1px solid #e9ecef;">
                     <h4 style="color: #228B22; margin-top: 0;">📋 Investigation Details & Pricing:</h4>
-                    ${doc.investigations.map(inv => `<div style=\"display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f1f1f1;\"><span><strong>${inv.test_name}</strong> <small style=\"color:#666;\">(${inv.category})</small></span><span style=\"color:#228B22; font-weight:bold; font-size:16px;\">₦${(inv.price||0).toLocaleString()}</span></div>`).join('')}
+                    ${doc.investigations.map(inv => `<div style=\"display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f1f1f1;\"><span><strong>${inv.test_name}</strong> <small style=\"color:#666;\">(${inv.category})</small></span><span style=\"color:#228B22; font-weight:bold; font-size:16px;\">₦${(inv.price || 0).toLocaleString()}</span></div>`).join('')}
                     <div style="margin-top: 15px; padding-top: 10px; border-top: 2px solid #228B22;">
                       <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-size: 18px; font-weight: bold;">Total Investigation Cost:</span>
-                        <span style="color: #228B22; font-weight: bold; font-size: 20px;">₦${(doc.total_investigation_cost||0).toLocaleString()}</span>
+                        <span style="color: #228B22; font-weight: bold; font-size: 20px;">₦${(doc.total_investigation_cost || 0).toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
@@ -725,7 +725,7 @@ module.exports = async (req, res) => {
               </div>
             `
           });
-        } catch {}
+        } catch { }
         return res.status(200).json({ status: 1, data: doc });
       }
       return res.status(405).json({ status: 0, message: 'Method Not Allowed' });
@@ -736,14 +736,16 @@ module.exports = async (req, res) => {
       if (req.method === 'GET') {
         let org = await CorporateBooking.findOne({ organization_id: id });
         if (!org) org = await CorporateBooking.findOne({ organization_id: { $regex: `^${id}$`, $options: 'i' } });
-        if (!org) org = await CorporateBooking.findOne({ $or: [
-          { 'staff_members.search_number': id },
-          { 'staff_members.searchNumber': id },
-          { 'staff_members.unique_id': id },
-          { 'staff_members.search_number': { $regex: `^${id}$`, $options: 'i' } },
-          { 'staff_members.searchNumber': { $regex: `^${id}$`, $options: 'i' } },
-          { 'staff_members.unique_id': { $regex: `^${id}$`, $options: 'i' } }
-        ] });
+        if (!org) org = await CorporateBooking.findOne({
+          $or: [
+            { 'staff_members.search_number': id },
+            { 'staff_members.searchNumber': id },
+            { 'staff_members.unique_id': id },
+            { 'staff_members.search_number': { $regex: `^${id}$`, $options: 'i' } },
+            { 'staff_members.searchNumber': { $regex: `^${id}$`, $options: 'i' } },
+            { 'staff_members.unique_id': { $regex: `^${id}$`, $options: 'i' } }
+          ]
+        });
         if (!org) return res.status(404).json({ status: 0, message: 'Not found' });
         return res.status(200).json({ status: 1, data: org });
       }
