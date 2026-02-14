@@ -70,7 +70,7 @@ const userSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now }
 });
 const User = mongoose.models.User || mongoose.model('User', userSchema);
-const registerTokenSchema = new mongoose.Schema({ token: { type: String, unique: true }, used: { type: Boolean, default: false }, createdAt: { type: Date, default: Date.now, expires: '1h' } });
+const registerTokenSchema = new mongoose.Schema({ token: { type: String, unique: true }, used: { type: Boolean, default: false }, createdAt: { type: Date, default: Date.now, expires: '24h' } });
 const activeTokenSchema = new mongoose.Schema({ token: String, createdAt: { type: Date, default: Date.now, expires: '1h' } });
 const RegisterToken = mongoose.models.RegisterToken || mongoose.model('RegisterToken', registerTokenSchema);
 const ActiveToken = mongoose.models.ActiveToken || mongoose.model('ActiveToken', activeTokenSchema);
@@ -558,13 +558,21 @@ module.exports = async (req, res) => {
       if (req.method !== 'POST') return res.status(405).json({ status: 0, message: 'Method Not Allowed' });
       await connect();
       const authHeader = req.headers['authorization'] || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
-      if (!token || token !== process.env.ADMIN_REG_TOKEN) return res.status(401).json({ status: 0, message: 'Unauthorized' });
+      const tokenStr = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+      if (!tokenStr) return res.status(401).json({ status: 0, message: 'No token provided' });
+
+      const tokenDoc = await RegisterToken.findOne({ token: tokenStr });
+      if (!tokenDoc) return res.status(401).json({ status: 0, message: 'Invalid or expired token' });
+
       const { username, password } = jsonBody(req);
       if (!username || !password) return res.status(400).json({ status: 0, message: 'Missing username or password' });
+
       const hash = await bcrypt.hash(password, 10);
       const admin = new Admin({ username, password: hash });
       await admin.save();
+
+      await RegisterToken.deleteOne({ _id: tokenDoc._id }); // Single use: delete immediately
+
       return res.status(200).json({ status: 1, message: 'Admin registered successfully' });
     }
     if (segments[0] === 'auth' && segments[1] === 'generate-token') {
@@ -588,6 +596,17 @@ module.exports = async (req, res) => {
       await connect();
       const tokens = await RegisterToken.find({ used: false }).sort({ createdAt: -1 });
       return res.status(200).json({ status: 1, tokens: tokens });
+    }
+    if (segments[0] === 'auth' && segments[1] === 'tokens' && segments[2] && req.method === 'DELETE') {
+      const ck = requireActiveToken(req);
+      if (!ck.ok) return res.status(401).json({ status: 0, message: 'Unauthorized' });
+      const decoded = jwt.decode(ck.token);
+      if (!decoded || decoded.role !== 'superadmin') return res.status(403).json({ status: 0, message: 'Forbidden' });
+
+      await connect();
+      const tokenId = segments[2];
+      await RegisterToken.deleteOne({ _id: tokenId });
+      return res.status(200).json({ status: 1, message: 'Token deleted' });
     }
 
     // ADMINS
