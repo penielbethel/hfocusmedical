@@ -535,6 +535,45 @@ module.exports = async (req, res) => {
       if (!appointment) appointment = await Appointment.findOne({ unique_id: { $regex: `^${id}$`, $options: 'i' } });
       if (!appointment) appointment = await Appointment.findOne({ booking_id: id });
       if (!appointment) appointment = await Appointment.findOne({ booking_id: { $regex: `^${id}$`, $options: 'i' } });
+
+      // Fallback: Check Corporate Staff if not found in Appointments
+      if (!appointment) {
+        const org = await CorporateBooking.findOne({
+          $or: [
+            { 'staff_members.search_number': id },
+            { 'staff_members.searchNumber': id },
+            { 'staff_members.unique_id': id },
+            { 'staff_members.search_number': { $regex: `^${id}$`, $options: 'i' } },
+            { 'staff_members.searchNumber': { $regex: `^${id}$`, $options: 'i' } },
+            { 'staff_members.unique_id': { $regex: `^${id}$`, $options: 'i' } }
+          ]
+        });
+
+        if (org && Array.isArray(org.staff_members)) {
+          const staff = org.staff_members.find(s => {
+            const sId = s.search_number || s.searchNumber || s.unique_id || '';
+            return sId.toLowerCase() === id.toLowerCase();
+          });
+
+          if (staff) {
+            const names = (staff.name || 'Staff Member').split(' ');
+            appointment = {
+              unique_id: staff.search_number || staff.searchNumber || staff.unique_id,
+              booking_id: org.organization_id,
+              first_name: names[0],
+              last_name: names.slice(1).join(' ') || '',
+              title: '',
+              gender: staff.gender || '',
+              department: staff.department || org.department,
+              center_name: org.company_name, // Show Company Name as context
+              appointment_date: staff.appointment_date || new Date(org.created_at).toISOString().split('T')[0],
+              result_ready: staff.result_ready,
+              result_file: staff.result_file
+            };
+          }
+        }
+      }
+
       if (!appointment) return res.status(200).json({ status: 0, message: 'No record found' });
       return res.status(200).json({ status: 1, data: appointment });
     }
