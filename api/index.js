@@ -446,7 +446,7 @@ module.exports = async (req, res) => {
       if (!exists) return res.status(401).json({ status: 0, message: 'Unauthorized' });
       const uniqueId = segments[2];
       return new Promise((resolve, reject) => {
-        const busboy = Busboy({ headers: req.headers });
+        const busboy = new Busboy({ headers: req.headers });
         let uploadUrl = null;
         let uploadError = null;
 
