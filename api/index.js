@@ -446,7 +446,9 @@ module.exports = async (req, res) => {
       if (!exists) return res.status(401).json({ status: 0, message: 'Unauthorized' });
       return new Promise((resolve, reject) => {
         try {
-          const busboy = new Busboy({ headers: req.headers });
+          console.log('Upload Headers:', req.headers);
+          if (!req.headers['content-type']) throw new Error('Missing Content-Type header');
+          const busboy = Busboy({ headers: req.headers });
           let uploadUrl = null;
           let uploadError = null;
 
