@@ -457,6 +457,7 @@ module.exports = async (req, res) => {
       if (!ck.ok) return res.status(401).json({ status: 0, message: 'Unauthorized' });
       const exists = await ActiveToken.findOne({ token: ck.token });
       if (!exists) return res.status(401).json({ status: 0, message: 'Unauthorized' });
+      const uniqueId = decodeURIComponent(segments[2]).trim();
       try {
         await runMiddleware(req, res, upload.single('result'));
       } catch (e) {
